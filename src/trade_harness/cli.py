@@ -1,4 +1,5 @@
 import argparse
+import importlib.metadata
 import json
 import os
 from pathlib import Path
@@ -16,6 +17,9 @@ DEFAULT_MARKET = Path(__file__).parent / "assets/latest.json"
 def main():
     parser = argparse.ArgumentParser(description="Trained trading decision CLI")
     parser.add_argument(
+        "--version", action="version", version=importlib.metadata.version("trade-harness")
+    )
+    parser.add_argument(
         "command",
         choices=[
             "decide",
@@ -28,6 +32,8 @@ def main():
             "paper",
             "paper-replay",
             "status",
+            "update",
+            "serve",
         ],
     )
     parser.add_argument("--input")
@@ -44,7 +50,8 @@ def main():
     parser.add_argument("--base-model", default="HuggingFaceTB/SmolLM2-135M-Instruct")
     parser.add_argument("--position", choices=["flat", "long"])
     parser.add_argument(
-        "--backend", choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile"]
+        "--backend",
+        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile"],
     )
     parser.add_argument("--data-dir", default="data/markets")
     parser.add_argument("--run-id", default="paper-BTCUSDT-1h")
@@ -61,6 +68,17 @@ def main():
         "--research", action="store_true", help="Allow simulated entries for an unvalidated model"
     )
     parser.add_argument("--folds", type=int, default=3)
+    updates = parser.add_mutually_exclusive_group()
+    updates.add_argument(
+        "--check", action="store_true", help="Verify and check for a release (default)"
+    )
+    updates.add_argument(
+        "--apply",
+        action="store_true",
+        help="Install a verified update into the managed environment",
+    )
+    parser.add_argument("--host", default="127.0.0.1")
+    parser.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
     if args.db is None:
         args.db = (
@@ -70,6 +88,20 @@ def main():
         )
     if args.backend:
         os.environ["TRADING_BACKEND"] = args.backend
+    if args.command == "update":
+        from .updater import UpdateError, Updater
+
+        try:
+            result = Updater().update(apply=args.apply)
+        except UpdateError as error:
+            parser.exit(1, f"{error}\n")
+        print(json.dumps(result, indent=2))
+        return
+    if args.command == "serve":
+        import uvicorn
+
+        uvicorn.run("trade_harness.api:app", host=args.host, port=args.port)
+        return
     if args.command == "evaluate":
         from .evaluation import evaluate
 

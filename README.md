@@ -147,3 +147,9 @@ pytest -q
 ```
 
 Tests cover temporal boundaries, portable model prediction parity, typed probability validation, risk sizing, stale feeds, protective exits despite model failure, next-open fills, conservative stops, account isolation, atomic persistence, replay/tick deduplication, API contracts, and optional-provider failure handling. Training and data download are explicit commands. No automatic live trading or online training process starts when installing the package.
+
+## Signed releases and automatic updates
+
+Automatic builds produce unsigned development artifacts; signing and publication require a manual Actions run with `sign_release` enabled. Stable release manifests are signed with Sigstore using this repository's tagged GitHub Actions identity. `trade-harness update --check` verifies availability; `trade-harness update --apply` stages a verified upgrade. Launch with `trade-harness-managed -- decide`, `-- paper --steps 0`, or `-- serve` to check automatically at startup, at most once per day. Running processes keep their current version until restarted.
+
+A macOS Developer ID Installer signing/notarization pipeline is prepared; it requires Apple Developer credentials before notarized installers can be released. See [release and update documentation](docs/releases-and-updates.md) for trust checks, deployment behavior, credential names, and activation. The portable signed wheel and prepared Apple notarization pipeline are distinct release capabilities.
