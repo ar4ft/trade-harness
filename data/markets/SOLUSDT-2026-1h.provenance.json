@@ -1,0 +1,53 @@
+{
+  "source": "Binance public spot monthly klines",
+  "symbol": "SOLUSDT",
+  "timeframe": "1h",
+  "start_month": "2026-01",
+  "end_month": "2026-08",
+  "candles": 5832,
+  "downloaded_at": "2026-09-30T04:59:11.984986+00:00",
+  "archives": [
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2026-01.zip",
+      "sha256": "949d8838cf48d6bd348762534e6307601574f82d58126dc26f0d91740622c27c",
+      "bytes": 38232
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2026-02.zip",
+      "sha256": "5e219b1a7d7384327e40b27b8accb7f1ae797f3c6ee628441de3035bc1fa3964",
+      "bytes": 34633
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2026-03.zip",
+      "sha256": "5bfab930f6e73e8a486ad1281de8df114d2c6a71cc08f7a449e6c6697af369b6",
+      "bytes": 37896
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2026-04.zip",
+      "sha256": "7266fae3d30b6b693bb731e7d392cdf132066b2e71a86b1695b0ab0c8a6b8507",
+      "bytes": 36216
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2026-05.zip",
+      "sha256": "bc33dc72343c662cb0614d4afe2ce7030ec7a4648d7c9a2dd1e99477e0001101",
+      "bytes": 37204
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2026-06.zip",
+      "sha256": "feb36f4d0a5bb0c13596b57d9477f60e7331cec8762b23102cb5ea188eddcdaf",
+      "bytes": 36564
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2026-07.zip",
+      "sha256": "62abffc3fdbf438465dc44432d16a1806e6c140ab3e1824ffceb908d831f67e2",
+      "bytes": 36861
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2026-08.zip",
+      "sha256": "fcec8b92044eb5a2cdcbfb038afce21bb8e02a06b18b1eaffc4ef88bacb1185e",
+      "bytes": 37177
+    }
+  ],
+  "timestamp_units": "Unix milliseconds; closed candle end",
+  "data_sha256": "6f0f48fc26090d0d3657fddf8687342d915a144b6b4123839bcc61a1a05635e3"
+}

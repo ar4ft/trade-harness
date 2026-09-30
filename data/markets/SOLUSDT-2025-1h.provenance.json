@@ -1,0 +1,73 @@
+{
+  "source": "Binance public spot monthly klines",
+  "symbol": "SOLUSDT",
+  "timeframe": "1h",
+  "start_month": "2025-01",
+  "end_month": "2025-12",
+  "candles": 8760,
+  "downloaded_at": "2026-09-30T04:59:09.769496+00:00",
+  "archives": [
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-01.zip",
+      "sha256": "8a40f8d5eb6e28b0c57c830ccb76e49046c1bdc631ec840e32576808f62ad466",
+      "bytes": 39701
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-02.zip",
+      "sha256": "8b7af1c42f8d8ac9bff2b2c8bc8a098150364947d93b363df0ab51e280aea544",
+      "bytes": 35695
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-03.zip",
+      "sha256": "7ddd11cb34dca5c6815cce34107d1bfc4a492c65b5f1def1d80419b04cb4b838",
+      "bytes": 38912
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-04.zip",
+      "sha256": "6f5a34a5482fa8abddfa2205df55605993b4c458315f613567eadfbd2062a0c3",
+      "bytes": 37641
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-05.zip",
+      "sha256": "cb07bdbbed3f21db679ea6944805a4282f121440abf0415905fe4fdc05f480f2",
+      "bytes": 38842
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-06.zip",
+      "sha256": "082af5c4634055a860eb765f2b0549344ae6dfd9274eaa09b06859eb7125ad0f",
+      "bytes": 37425
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-07.zip",
+      "sha256": "c2e17bfe68c0ae9ac8c12162c7a64534d91f56a9f9ec0560f300fa6414fc8f19",
+      "bytes": 38894
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-08.zip",
+      "sha256": "7ea49f6b1196a1c26473433850dfe139b775380cc4cdf03bf853fb553ee6c4e0",
+      "bytes": 39308
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-09.zip",
+      "sha256": "87ad6a05fe9d7fa90d4abd08cc3e6806759e9f3dcab69869fa3566d43bc876da",
+      "bytes": 38047
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-10.zip",
+      "sha256": "3cbcc4ed883fe75c9b095cb5981c810b39196b015940bff7cdd7fb6d68cb0865",
+      "bytes": 39348
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-11.zip",
+      "sha256": "311effa24632be0dfc523980554d876d5516e6acd6c08c7aa7daa3000ba393b9",
+      "bytes": 37789
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/SOLUSDT/1h/SOLUSDT-1h-2025-12.zip",
+      "sha256": "d8259dd2f6758b7cd4166564bf8aa7219d6aa140ecf68a3667749da41d4c2560",
+      "bytes": 38236
+    }
+  ],
+  "timestamp_units": "Unix milliseconds; closed candle end",
+  "data_sha256": "addafd5c093efac141ac5c758073e0f18e77367ee0885b14279319e26a6eaa48"
+}

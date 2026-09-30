@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trade-harness"
-version = "0.2.0"
+version = "0.3.0"
 description = "Trading decision harness with forecast and language model backends"
 requires-python = ">=3.11"
-dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "pydantic>=2.9,<3", "numpy>=2,<3", "scikit-learn>=1.5,<2", "httpx>=0.27,<1"]
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "pydantic>=2.9,<3", "numpy>=2,<3", "scikit-learn>=1.5,<2", "httpx>=0.27,<1", "scipy>=1.13,<2", "threadpoolctl>=3,<4"]
 
 [project.optional-dependencies]
 llm-train = ["torch>=2.4,<3", "transformers>=4.46,<5", "peft>=0.14,<1", "datasets>=3,<5", "accelerate>=1,<2"]
@@ -29,4 +29,4 @@ line-length = 100
 select = ["E4", "E7", "E9", "F", "I", "BLE001"]
 
 [tool.setuptools.package-data]
-trade_harness = ["assets/*.json", "assets/trading_lora/*.json", "assets/trading_lora/*.safetensors", "assets/trading_lora/*.txt", "assets/trading_lora/*.jinja", "assets/trading_lora/*.md"]
+trade_harness = ["assets/*.json", "assets/*.html", "assets/trading_lora/*.json", "assets/trading_lora/*.safetensors", "assets/trading_lora/*.txt", "assets/trading_lora/*.jinja", "assets/trading_lora/*.md"]

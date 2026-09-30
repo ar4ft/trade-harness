@@ -64,6 +64,34 @@ class Proposal(StrictModel):
     confidence: float = Field(ge=0, le=1)
     rationale: str = Field(min_length=1, max_length=4000)
     forecast: Forecast
+    probabilities: dict[str, float] | None = None
+    probability_calibration: str = "uncalibrated"
+    validation_status: Literal["validated", "research_only", "unknown"] = "unknown"
+    model_version: str | None = None
+    forecast_interval: list[float] | None = None
+
+    @model_validator(mode="after")
+    def validate_optional_distribution(self):
+        if self.probabilities is not None:
+            if set(self.probabilities) != {"BUY", "SELL", "HOLD"}:
+                raise ValueError("Action probabilities must cover BUY, SELL, and HOLD")
+            if (
+                any(not 0 <= p <= 1 for p in self.probabilities.values())
+                or abs(sum(self.probabilities.values()) - 1) > 1e-5
+            ):
+                raise ValueError("Action probabilities must be normalized and finite")
+            if (
+                not hasattr(self, "guardrails")
+                and abs(self.confidence - self.probabilities[self.action]) > 1e-5
+            ):
+                raise ValueError("Confidence must equal the probability of the proposed action")
+        if self.forecast_interval is not None:
+            if (
+                len(self.forecast_interval) != 2
+                or self.forecast_interval[0] > self.forecast_interval[1]
+            ):
+                raise ValueError("Forecast interval must be ordered [lower, upper]")
+        return self
 
 
 class Decision(Proposal):
@@ -73,6 +101,9 @@ class Decision(Proposal):
     as_of: int
     backend: str
     guardrails: list[str]
+    proposed_action: Literal["BUY", "SELL", "HOLD"] | None = None
+    execution: dict | None = None
+    fields: dict = Field(default_factory=dict)
 
 
 class Feedback(StrictModel):

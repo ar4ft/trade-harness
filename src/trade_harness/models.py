@@ -44,6 +44,7 @@ def proposal(market: MarketInput, expected: float, method: str) -> Proposal:
 
 
 class BaselineModel:
+    uses_history = False
     name = "momentum-baseline-v1"
 
     def predict(self, market, history):
@@ -52,6 +53,7 @@ class BaselineModel:
 
 
 class TrainedModel:
+    uses_history = False
     name = "ridge-forecast-v1"
 
     def __init__(self, path: str):
@@ -118,7 +120,19 @@ class LanguageModel:
 
 
 def load_model():
-    backend = os.environ.get("TRADING_BACKEND", "trained")
+    backend = os.environ.get("TRADING_BACKEND", "decision")
+    if backend == "decision":
+        from .learning import DecisionModel
+
+        return DecisionModel(
+            os.environ.get(
+                "TRADING_DECISION_MODEL", str(Path(__file__).parent / "assets/decision_model.json")
+            )
+        )
+    if backend == "nimble":
+        from .nimble import NimbleModel
+
+        return NimbleModel()
     if backend == "baseline":
         return BaselineModel()
     if backend == "trained":
@@ -133,6 +147,10 @@ def load_model():
         return LocalLanguageModel(
             os.environ.get("TRADING_LORA_PATH", str(Path(__file__).parent / "assets/trading_lora"))
         )
+    if backend == "llamafile":
+        from .llamafile_model import LlamafileModel
+
+        return LlamafileModel(os.environ.get("TRADING_LORA_PATH"))
     if backend == "llm":
         return LanguageModel()
     raise ValueError(f"Unknown backend: {backend}")

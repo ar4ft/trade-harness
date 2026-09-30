@@ -17,27 +17,112 @@ def main():
     parser = argparse.ArgumentParser(description="Trained trading decision CLI")
     parser.add_argument(
         "command",
-        choices=["decide", "backtest", "train", "fetch", "train-language", "export-finetuning"],
+        choices=[
+            "decide",
+            "backtest",
+            "train",
+            "fetch",
+            "train-language",
+            "export-finetuning",
+            "evaluate",
+            "paper",
+            "paper-replay",
+            "status",
+        ],
     )
     parser.add_argument("--input")
     parser.add_argument("--output")
-    parser.add_argument("--db", default=os.environ.get("TRADING_DB", "decisions.sqlite"))
+    parser.add_argument("--db", default=None)
     parser.add_argument("--symbol", default="BTCUSDT")
     parser.add_argument("--timeframe", default="1h")
     parser.add_argument("--start", default="2025-09", help="Archive start month YYYY-MM")
     parser.add_argument("--end", default="2026-08", help="Archive end month YYYY-MM")
     parser.add_argument("--horizon", type=int, default=3)
     parser.add_argument("--with-indicators", action="store_true")
-    parser.add_argument("--steps", type=int, default=120)
     parser.add_argument("--stride", type=int, default=8)
     parser.add_argument("--eval-samples", type=int, default=96)
     parser.add_argument("--base-model", default="HuggingFaceTB/SmolLM2-135M-Instruct")
     parser.add_argument("--position", choices=["flat", "long"])
-    parser.add_argument("--backend", choices=["baseline", "trained", "local-llm", "llm"])
+    parser.add_argument(
+        "--backend", choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile"]
+    )
+    parser.add_argument("--data-dir", default="data/markets")
+    parser.add_argument("--run-id", default="paper-BTCUSDT-1h")
+    parser.add_argument(
+        "--steps",
+        type=int,
+        default=None,
+        help="Paper ticks (default 1, 0 until stopped), or language training steps (default 120)",
+        dest="paper_steps",
+    )
+    parser.add_argument("--poll-seconds", type=float, default=5)
+    parser.add_argument("--risk-config")
+    parser.add_argument(
+        "--research", action="store_true", help="Allow simulated entries for an unvalidated model"
+    )
+    parser.add_argument("--folds", type=int, default=3)
     args = parser.parse_args()
+    if args.db is None:
+        args.db = (
+            os.environ.get("TRADING_PAPER_DB", "paper.sqlite")
+            if args.command in ("paper", "paper-replay", "status")
+            else os.environ.get("TRADING_DB", "decisions.sqlite")
+        )
     if args.backend:
         os.environ["TRADING_BACKEND"] = args.backend
-    if args.command == "fetch":
+    if args.command == "evaluate":
+        from .evaluation import evaluate
+
+        paths = [
+            str(p)
+            for p in Path(args.data_dir).glob("*.json")
+            if not p.name.endswith(".provenance.json")
+        ]
+        evaluate(paths, args.output or "reports/walk-forward.json", folds=args.folds)
+        return
+    elif args.command == "paper":
+        from .live import load_risk_config, run_live
+
+        result = run_live(
+            load_model(),
+            db=args.db,
+            run_id=args.run_id,
+            symbol=args.symbol,
+            timeframe=args.timeframe,
+            horizon=args.horizon,
+            steps=args.paper_steps if args.paper_steps is not None else 1,
+            poll_seconds=args.poll_seconds,
+            config=load_risk_config(args.risk_config, args.research),
+        )
+    elif args.command == "status":
+        store = Store(args.db)
+        result = {
+            "runs": store.runs(),
+            "events": store.events(args.run_id),
+            "latest_decision": store.latest_decision(args.run_id),
+        }
+    elif args.command == "paper-replay":
+        from .learning import window
+        from .live import load_risk_config
+        from .paper import PaperEngine
+
+        market = MarketInput.model_validate_json(
+            Path(args.input or "data/BTCUSDT-1h.json").read_text()
+        )
+        model = load_model()
+        engine = PaperEngine(
+            model,
+            Store(args.db),
+            args.run_id,
+            market.symbol,
+            market.timeframe,
+            load_risk_config(args.risk_config, args.research),
+        )
+        for i in range(20, len(market.ohlc)):
+            if market.timestamps[i] > getattr(model, "trained_until", -1):
+                engine.replay(window(market, i), market.ohlc[i])
+        result = engine.summary()
+    elif args.command == "fetch":
         from .data import download
 
         result = download(
@@ -58,7 +143,7 @@ def main():
                 "--output",
                 args.output or "artifacts/trading-lora",
                 "--steps",
-                str(args.steps),
+                str(args.paper_steps if args.paper_steps is not None else 120),
                 "--stride",
                 str(args.stride),
                 "--eval-samples",
@@ -82,7 +167,19 @@ def main():
         elif args.command == "backtest":
             result = backtest(market, load_model())
         else:
-            result = Harness(load_model(), Store(args.db)).decide(market).model_dump()
+            from .live import load_risk_config
+
+            config = load_risk_config(args.risk_config, args.research)
+            result = (
+                Harness(
+                    load_model(),
+                    Store(args.db),
+                    minimum_confidence=config.min_confidence,
+                    risk_config=config,
+                )
+                .decide(market)
+                .model_dump()
+            )
     print(json.dumps(result, indent=2))
 
 

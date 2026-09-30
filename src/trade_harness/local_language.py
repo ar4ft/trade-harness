@@ -145,6 +145,8 @@ class LocalLanguageModel:
         return Proposal(
             action=ACTIONS[best],
             confidence=float(probabilities[best]),
+            probabilities={a: float(p) for a, p in zip(ACTIONS, probabilities)},
+            validation_status="research_only",
             rationale="Local trained language-model direction scores: "
             + ", ".join(f"{a}={p:.3f}" for a, p in zip(ACTIONS, probabilities)),
             forecast=Forecast(

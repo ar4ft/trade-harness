@@ -11,6 +11,7 @@ import pytest
 
 from trade_harness.data import add_indicators, download, normalize_timestamp, read_archive
 from trade_harness.features import FEATURE_NAMES, INDICATOR_FEATURE_NAMES, features, prefix
+from trade_harness.learning import DecisionModel
 from trade_harness.local_language import compact_prompt, training_records
 from trade_harness.models import TrainedModel, load_model
 from trade_harness.schemas import MarketInput
@@ -79,7 +80,7 @@ def test_indicator_model_and_shipped_default(real_market, tmp_path, monkeypatch)
     monkeypatch.delenv("TRADING_BACKEND", raising=False)
     monkeypatch.delenv("TRADING_MODEL_PATH", raising=False)
     shipped = load_model()
-    assert isinstance(shipped, TrainedModel)
+    assert isinstance(shipped, DecisionModel)
     decision = shipped.predict(real_market, [])
     assert np.isfinite(decision.forecast.expected_return)
     target = tmp_path / "model.json"

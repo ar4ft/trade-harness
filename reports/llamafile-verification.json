@@ -1,0 +1,42 @@
+{
+  "platform": "Linux x86-64 CPU",
+  "artifact": {
+    "output": "dist/trading-language.llamafile",
+    "llamafile_version": "0.10.6",
+    "upstream_binaries": {
+      "llamafile-0.10.6-thin": "756bf97febae557084e8ced9bde7a1cb0c7f6ce778530d582afa219406237a50",
+      "zipalign-0.10.6": "7eac59c658226027b365d92131babf06341f746fb20c0db33115bbdf5c5c6c4b"
+    },
+    "gguf_sha256": "7ab79fffe2c00abc3f3f4854a7e280e9075f996b040e2791ae8c9f0be9dd4934",
+    "executable_sha256": "4338dd7e7491a9079d9ad16be64ac0070b9b3afe1a65259d154647eb8953fd33",
+    "bytes": 315049741,
+    "license_files": [
+      "Apache-2.0.txt",
+      "llamafile-LICENSE.txt",
+      "trading-model-NOTICE.txt"
+    ],
+    "windows_under_4gb": true,
+    "model_license": "Supply the upstream model license and notices when redistributing"
+  },
+  "snapshot": "src/trade_harness/assets/latest.json",
+  "probability_parity": {
+    "python": [
+      0.4376076815239807,
+      0.34038392522322697,
+      0.22200839325279237
+    ],
+    "llamafile": [
+      0.4375791146626371,
+      0.341083703275896,
+      0.22133718206146688
+    ],
+    "max_absolute_difference": 0.00069977805266902
+  },
+  "comparison_tolerance": {
+    "atol": 0.005,
+    "rtol": 0.03
+  },
+  "scope": "One inference snapshot, not a chronological performance reevaluation",
+  "runtime_status": "Bundled server health 200; dedicated scoring and harness CLI verified",
+  "deployment_status": "research_only"
+}

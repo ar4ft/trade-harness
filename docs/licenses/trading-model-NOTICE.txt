@@ -1,0 +1,18 @@
+Trade Harness merged trading language model
+
+Base: HuggingFaceTB/SmolLM2-135M-Instruct
+Revision: 12fd25f77366fa6b3b4b768ec3050bf629380bac
+Source: https://huggingface.co/HuggingFaceTB/SmolLM2-135M-Instruct
+License declared by upstream model card: Apache-2.0
+A copy of the Apache 2.0 license accompanies this notice.
+
+Modifications: merged Trade Harness's BTCUSDT 1h trading-direction LoRA adapter
+into the upstream base weights, then converted the merged weights to F16 GGUF.
+Adapter training details and evaluation are recorded in trading_metadata.json.
+No profitable trading edge has been established; this is a research model.
+
+Mozilla inference runtime: llamafile 0.10.6 (unmodified)
+Source: https://github.com/mozilla-ai/llamafile
+Copyright 2023 Mozilla Foundation. Apache 2.0; see llamafile-LICENSE.txt.
+The runtime includes components with their own upstream notices/licenses.
+The Python harness is distributed separately under its repository MIT license.
