@@ -6,7 +6,7 @@ from typing import Protocol
 import httpx
 import numpy as np
 
-from .features import FEATURE_NAMES, features
+from .features import FEATURE_NAMES, INDICATOR_FEATURE_NAMES, features
 from .schemas import Forecast, MarketInput, Proposal
 
 SYSTEM_PROMPT = """You are a trading research decision model. Inputs contain only closed candles
@@ -56,7 +56,10 @@ class TrainedModel:
 
     def __init__(self, path: str):
         self.artifact = json.loads(Path(path).read_text())
-        if self.artifact["features"] != FEATURE_NAMES:
+        if self.artifact["features"] not in (
+            FEATURE_NAMES,
+            FEATURE_NAMES + INDICATOR_FEATURE_NAMES,
+        ):
             raise ValueError("Model feature contract mismatch")
         self.trained_until = self.artifact["trained_until"]
 
@@ -68,7 +71,13 @@ class TrainedModel:
             raise ValueError("Requested horizon differs from trained model horizon")
         if market.timestamps[-1] <= a["trained_until"]:
             raise ValueError("Forecast timestamp overlaps training data")
-        x = (features(market) - np.array(a["mean"])) / np.array(a["scale"])
+        if len(a["features"]) > len(FEATURE_NAMES):
+            from .data import ensure_indicators
+
+            market = ensure_indicators(market)
+        x = (
+            features(market, len(a["features"]) > len(FEATURE_NAMES)) - np.array(a["mean"])
+        ) / np.array(a["scale"])
         predicted = float(x @ np.array(a["coef"]) + a["intercept"])
         return proposal(market, predicted, self.name)
 
@@ -109,11 +118,21 @@ class LanguageModel:
 
 
 def load_model():
-    backend = os.environ.get("TRADING_BACKEND", "baseline")
+    backend = os.environ.get("TRADING_BACKEND", "trained")
     if backend == "baseline":
         return BaselineModel()
     if backend == "trained":
-        return TrainedModel(os.environ.get("TRADING_MODEL_PATH", "artifacts/forecast.json"))
+        return TrainedModel(
+            os.environ.get(
+                "TRADING_MODEL_PATH", str(Path(__file__).parent / "assets/btcusdt_1h_forecast.json")
+            )
+        )
+    if backend == "local-llm":
+        from .local_language import LocalLanguageModel
+
+        return LocalLanguageModel(
+            os.environ.get("TRADING_LORA_PATH", str(Path(__file__).parent / "assets/trading_lora"))
+        )
     if backend == "llm":
         return LanguageModel()
     raise ValueError(f"Unknown backend: {backend}")

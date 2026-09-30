@@ -8,7 +8,7 @@ from .models import load_model
 from .schemas import Decision, Feedback, MarketInput
 from .storage import Store
 
-app = FastAPI(title="Trade Harness", version="0.1.0")
+app = FastAPI(title="Trade Harness", version="0.2.0")
 
 
 @lru_cache

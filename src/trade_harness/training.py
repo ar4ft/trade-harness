@@ -5,12 +5,12 @@ import numpy as np
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 
-from .features import FEATURE_NAMES, features, prefix
+from .features import FEATURE_NAMES, INDICATOR_FEATURE_NAMES, features, prefix
 from .models import SYSTEM_PROMPT, TrainedModel
 from .schemas import MarketInput, Proposal
 
 
-def train(market: MarketInput, output: str):
+def train(market: MarketInput, output: str, include_indicators=False):
     n, horizon = len(market.ohlc), market.horizon
     split = int(n * 0.8)
     # Purge labels that would mature in the chronological validation partition.
@@ -21,7 +21,7 @@ def train(market: MarketInput, output: str):
 
     def xy(indices):
         return (
-            np.array([features(prefix(market, i + 1)) for i in indices]),
+            np.array([features(prefix(market, i + 1), include_indicators) for i in indices]),
             np.array([market.ohlc[i + horizon][3] / market.ohlc[i][3] - 1 for i in indices]),
         )
 
@@ -39,7 +39,7 @@ def train(market: MarketInput, output: str):
     }
     artifact = {
         "version": 1,
-        "features": FEATURE_NAMES,
+        "features": FEATURE_NAMES + (INDICATOR_FEATURE_NAMES if include_indicators else []),
         "horizon": horizon,
         "symbol": market.symbol,
         "timeframe": market.timeframe,

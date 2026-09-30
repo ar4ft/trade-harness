@@ -7,3 +7,7 @@ __pycache__/
 .env
 *.sqlite*
 artifacts/
+
+src/trade_harness/assets/trading_lora/checkpoints/
+build/
+dist/

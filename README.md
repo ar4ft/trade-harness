@@ -1,10 +1,10 @@
 # Trade Harness
 
-A custom trading decision harness and model-training toolkit. Pass OHLC arrays, volume, named indicator arrays, timeframe, symbol, and current position. Receive **BUY / SELL / HOLD**, a forecast return, projected price, rationale, and guardrail results. Designed for research and paper trading.
+A working **CLI and HTTP API** for trading decisions from OHLCV candles, indicator arrays, timeframe, and prior decisions. Returns BUY / SELL / HOLD, a return forecast, projected close, rationale, and guardrail results. There is no desktop interface.
 
-Includes a transparent momentum baseline, a trainable local numerical model, and a custom trading language-model interface with a LoRA training workflow. It is an independent implementation; no compatibility with projects named Jev, Laya, or OpenJev is claimed.
+This repository includes real BTC/USDT hourly market data, a trained numerical forecast model, and actual trained weights for a small custom language-model adapter. Both models were evaluated chronologically. The current results do **not** establish a profitable trading edge; keep this version in research/paper trading.
 
-## Quick start
+## Run immediately
 
 Python 3.11+:
 
@@ -14,153 +14,181 @@ cd trade-harness
 python -m venv .venv
 source .venv/bin/activate
 pip install -e '.[dev]'
-trade-harness decide --input examples/market.json
+trade-harness decide
+```
+
+This runs the shipped numerical model on the included real-data snapshot. It needs no API key or model download. The snapshot ends August 31, 2026; it is historical, not a live market feed. A HOLD result is an intentional decision when confidence is low.
+
+Use your own closed candles:
+
+```bash
+trade-harness decide --input your-market.json --position flat
+trade-harness decide --input your-market.json --position long
+trade-harness backtest --input data/BTCUSDT-1h.json
+```
+
+The shipped models are specific to **BTCUSDT, 1h candles, a 3-candle forecast horizon**. Train new weights for another asset, timeframe, or horizon. The `baseline` and remote `llm` backends are not restricted to that training contract.
+
+## Run the trained custom language model
+
+The included LoRA adapter was trained from `HuggingFaceTB/SmolLM2-135M-Instruct`: 120 optimizer steps, seed 42, 764 records in the training partition, assistant-only loss masking. The run processed 480 samples (0.63 epochs). It is actual trained model weights, not just a system prompt. Training ran on CPU in about six minutes; inference was checked separately.
+
+For a CPU-only Linux installation:
+
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install -e '.[llm-train]'
+trade-harness decide --backend local-llm
+```
+
+For other platforms, install the appropriate PyTorch build, then the optional dependencies. First use downloads the pinned upstream base-model weights, approximately 270 MB, from Hugging Face. Later runs reuse the cache. No provider API key is required. The adapter and tokenizer are included in the repository and Python package.
+
+This small language model consumes six OHLCV features, SMA20, RSI14, MACD, ATR14, and the latest prior decision/available realized outcome. Standard indicators are computed causally when missing. It scores the likelihood of BUY, SELL, and HOLD instead of relying on free-form JSON generation. Its return projection is the weighted mean of training-set returns for those three classes. Confidence scores are uncalibrated.
+
+## HTTP API
+
+```bash
 uvicorn trade_harness.api:app --host 127.0.0.1 --port 8000
 ```
 
-Interactive API documentation: http://127.0.0.1:8000/docs
+Or use the local language model:
+
+```bash
+TRADING_BACKEND=local-llm uvicorn trade_harness.api:app --host 127.0.0.1 --port 8000
+```
+
+API documentation: http://127.0.0.1:8000/docs
 
 ```bash
 curl http://127.0.0.1:8000/decisions \
   -H 'Content-Type: application/json' \
-  --data-binary @examples/market.json
+  --data-binary @src/trade_harness/assets/latest.json
 ```
 
-The checked-in sample contains **synthetic** hourly prices for repeatable demonstrations. They are not market observations or evidence of profitability.
+Endpoints: `GET /health`, `POST /decisions`, `POST /feedback`, and `POST /backtest`. The API is intended to run locally; add authentication before exposing it.
 
-## Input contract
+## Input and output
 
 | Field | Format |
 | --- | --- |
 | `ohlc` | Chronological array of `[open, high, low, close]` rows, 21–10,000 candles |
-| `volume` | Nonnegative array, same length as OHLC |
+| `volume` | Nonnegative array aligned with OHLC |
 | `timestamps` | Strictly increasing closed-candle end times, Unix milliseconds |
-| `indicators` | Array of `{ "name": "rsi_14", "values": [...] }`, each aligned with OHLC; warmup values may be `null` |
-| `timeframe` | Such as `1m`, `15m`, `1h`, `1d`, `1w` |
+| `indicators` | Array of `{ "name": "rsi_14", "values": [...] }`, aligned with candles; warmup values may be `null` |
+| `timeframe` | Such as `15m`, `1h`, `1d` |
 | `symbol` | Such as `BTCUSDT` |
-| `position` | `flat` or `long` |
+| `position` | `flat` or `long`; default `flat` |
 | `horizon` | Forecast length in candles, 1–100; default 3 |
 
-See [examples/market.json](examples/market.json) for a complete valid request. Supply only closed candles and compute indicators using past data. The API cannot determine whether a caller's indicators contain future information. Use regular candle intervals; missing periods require preprocessing, particularly for outcome timestamps.
+A complete real example is in [src/trade_harness/assets/latest.json](src/trade_harness/assets/latest.json). The older `examples/market.json` fixture is synthetic and used only for tests. Do not pass unfinished candles. Compute custom indicators using historical data only; the API cannot identify future information embedded by the caller.
 
-Response fields:
+Output includes `action`, `confidence`, `rationale`, `forecast.horizon`, `forecast.expected_return`, `forecast.projected_close`, `id`, `as_of`, `backend`, and `guardrails`. SELL exits a long position. Short selling, leverage, exchange order placement, and pyramiding are not implemented.
 
-```json
-{
-  "action": "BUY",
-  "confidence": 0.72,
-  "rationale": "Example research signal",
-  "forecast": {
-    "horizon": 3,
-    "expected_return": 0.02,
-    "projected_close": 102.0,
-    "method": "your-model"
-  },
-  "id": "generated-uuid",
-  "symbol": "BTCUSDT",
-  "timeframe": "1h",
-  "as_of": 1700000000000,
-  "backend": "your-model",
-  "guardrails": []
-}
-```
+## Real data and reproducibility
 
-Confidence is a heuristic score, not a calibrated success probability. SELL closes an existing long; this version does not model short positions, leverage, or pyramiding.
+Included dataset: **8,760 hourly BTC/USDT candles, September 2025–August 2026**. Downloaded from Binance public monthly spot kline archives. Every archive was checked against its SHA256 checksum; timestamps in microseconds were normalized to milliseconds. Duplicate or missing candle intervals are rejected. SMA20, RSI14, MACD, and ATR14 are computed using only historical prefixes.
 
-## Model choices
+Source URLs and checksums: [data/BTCUSDT-1h.provenance.json](data/BTCUSDT-1h.provenance.json).
 
-| Backend | Behavior |
-| --- | --- |
-| `baseline` (default) | Deterministic five-candle momentum forecast; convenient for testing |
-| `trained` | Ridge regression fitted to OHLCV features, portable JSON weights |
-| `llm` | Custom prompt, all supplied indicators, prior decisions and available outcomes, strict validated JSON |
-
-The numerical backends use six fixed OHLCV features and do not consume supplied indicators or decision memory. The language-model backend consumes both. Decision memory provides context; it does not automatically update model weights.
-
-### Train your local forecasting model
-
-Replace the example with your historical dataset, in the same input format:
+Download again, or choose another completed month range:
 
 ```bash
-trade-harness train --input examples/market.json --output artifacts/forecast.json
-TRADING_BACKEND=trained trade-harness decide --input examples/market.json
-TRADING_BACKEND=trained trade-harness backtest --input examples/market.json
+trade-harness fetch --symbol BTCUSDT --timeframe 1h \
+  --start 2025-09 --end 2026-08 --output data/BTCUSDT-1h.json
 ```
 
-Training uses the first 80% chronologically, purges training labels crossing the split, fits normalization on training only, and evaluates on the remaining labeled candles. Metrics include MAE, zero-return baseline MAE, and direction accuracy. Saved models reject predictions that overlap training or change the symbol, timeframe, or horizon. Trained-model backtests start after the training boundary. The initial implementation has one chronological holdout; production research needs additional walk-forward periods and an untouched final test set.
+The downloader supports Binance archive intervals from 1 minute through 1 day, subject to the 10,000-candle input limit. Use fewer months for smaller intervals. It filters unfinished candles and requires monthly archives to exist. Future data collection is an explicit CLI command; no background trading process starts automatically.
 
-### Connect a language model
+Reproduce the shipped numerical weights and evaluation:
 
 ```bash
-export TRADING_BACKEND=llm
+python scripts/rebuild_models.py
+```
+
+Reproduce both models and evaluation:
+
+```bash
+HF_HUB_DISABLE_XET=1 python scripts/rebuild_models.py --with-language --steps 120
+```
+
+Floating-point results can differ across PyTorch versions and hardware. The LoRA base revision and training parameters are saved with the weights.
+
+## Train your own models
+
+Numerical model:
+
+```bash
+trade-harness train --input data/BTCUSDT-1h.json \
+  --with-indicators --output artifacts/forecast.json
+TRADING_MODEL_PATH=artifacts/forecast.json trade-harness decide
+```
+
+Training uses an 80/20 chronological split within the supplied file, purges labels crossing the split, and fits normalization on training data only. `--with-indicators` adds four standard indicator features to six OHLCV features. Missing standard indicators are computed during inference. Shipped numerical weights were fitted within the first 85% of the dataset, leaving the final 15% outside both training and validation.
+
+Custom local language model:
+
+```bash
+trade-harness train-language --input data/BTCUSDT-1h.json \
+  --output artifacts/my-trading-lora --steps 120
+TRADING_LORA_PATH=artifacts/my-trading-lora trade-harness decide --backend local-llm
+```
+
+Language training uses 70% train, 15% validation, 15% test, with boundary labels purged. Direction labels are derived automatically from subsequent horizon returns: BUY above +0.3%, SELL below -0.3%, otherwise HOLD. Future outcomes appear only in target labels. Historical context uses an earlier simulated momentum decision and an outcome that had already matured. This is not the same as training on human-reviewed decisions. The default training stride is 8 candles; validation/test metrics use 96 uniformly spaced records per partition.
+
+The training script saves adapter weights, tokenizer, pinned base revision, class-return means, optimizer-step count, and measured evaluation results. It does not perform automatic online retraining when feedback is recorded.
+
+## Measured performance
+
+See [reports/real-data-evaluation.json](reports/real-data-evaluation.json) for exact held-out metrics and [the adapter metadata](src/trade_harness/assets/trading_lora/trading_metadata.json) for training/evaluation details.
+
+The numerical model's final test MAE was approximately **0.410%**, compared with **0.406%** for a zero-return forecast. Its sign accuracy was **44.2%**. The conservative harness made no trades in that test period and remained in cash. This is a functioning research pipeline, not evidence of an effective trading strategy.
+
+The small language model's validation direction accuracy matched the training-majority baseline. Its final test direction accuracy was **44.8%**, versus **45.8%** for the training-majority baseline, on 96 uniformly sampled later records. Do not confuse sign accuracy for numerical return forecasts with three-class accuracy for language-model direction labels.
+
+The local language model also remained in cash in a separate backtest of the final 168 test candles using actual harness history. No thresholds were loosened to force trades after seeing the results. Further research needs multiple market regimes, additional assets, walk-forward evaluation, calibrated confidence, and an untouched final test period.
+
+## Other backends and customization
+
+```bash
+trade-harness decide --backend baseline --input examples/market.json
+```
+
+Use any OpenAI-compatible chat-completions server, including a different custom language model:
+
+```bash
 export LLM_BASE_URL=https://api.openai.com/v1
-export LLM_MODEL=your-model-or-fine-tuned-model-id
+export LLM_MODEL=your-model-id
 export LLM_API_KEY=your-key
-uvicorn trade_harness.api:app --host 127.0.0.1 --port 8000
+trade-harness decide --backend llm
 ```
 
-Use an OpenAI-compatible `/chat/completions` provider or local server that supports JSON response mode. `.env.example` lists configuration variables; the application does not load `.env` automatically. An external provider receives the supplied market data and history. Provider failures and malformed or inconsistent forecasts produce HOLD.
+The remote LLM backend receives the supplied raw OHLCV, all named indicator arrays, current position, prior decisions, and available outcomes. `.env.example` lists environment variables; the application does not automatically load `.env`. A provider receives the submitted market data and decision context.
 
-### Train a custom language-model adapter
+To train another instruction model on manually reviewed decisions, record outcomes using `/feedback`, export with `trade-harness export-finetuning --output artifacts/trading-chat.jsonl`, review the retained forecast/rationale/confidence fields, and use `scripts/train_lora.py`. That general script is separate from the executed market-label training workflow.
 
-1. Collect decisions and record realized outcomes plus a human-reviewed action with `POST /feedback`.
-2. Export reviewed chat examples:
+Implement `predict(market, history) -> Proposal` and a `name` property to register another backend. The harness checks position, forecast consistency, confidence, and volatility after prediction. Model errors or invalid output produce HOLD. Shipped model inputs outside their asset/timeframe/horizon/training-time contract also fail closed.
 
-```bash
-trade-harness export-finetuning --output artifacts/trading-chat.jsonl
-```
+## Memory and backtesting
 
-3. Review the exported assistant forecasts, rationales, and confidence scores. The export replaces the action with the reviewed action but retains the model's original rationale and forecast. Correct inconsistent answers before training. Input messages exclude future outcomes; labels may use hindsight. The current exporter uses empty history, so history-aware training examples need to be curated separately.
-4. Train a LoRA adapter on an instruction language model:
+SQLite stores requests, decisions, and feedback. Only prior decisions from the same symbol/timeframe are exposed. A realized outcome enters model context only after its observation timestamp precedes the current decision. Use separate databases for separate accounts or strategies.
 
-```bash
-pip install -e '.[llm-train]'
-python scripts/train_lora.py \
-  --data artifacts/trading-chat.jsonl \
-  --base-model Qwen/Qwen2.5-0.5B-Instruct \
-  --output artifacts/trading-lora
-```
-
-This trains actual adapter weights with assistant-only loss masking. It downloads the base model and requires sufficient memory; GPU training is recommended. The script rejects overlong examples instead of silently removing their targets. Use a bounded candle window for training data and keep later time periods out of the training set. Check the selected base model's license before distribution.
-
-5. Serve the base model plus adapter with a compatible inference server and point `LLM_BASE_URL` and `LLM_MODEL` to it. Evaluate on later market periods before paper trading. This repository does not include pretrained trading language-model weights, and the optional GPU training run has not been executed as part of the starter-project validation.
-
-## Decision memory and feedback
-
-SQLite stores requests, final decisions, and feedback. Only earlier decisions from the same symbol and timeframe are exposed to the language model; an outcome is included only when its observation time precedes the current decision time.
+`POST /feedback` accepts:
 
 ```json
 {
   "decision_id": "uuid-from-response",
   "realized_return": 0.012,
   "reviewed_action": "BUY",
-  "notes": "Reviewed after the horizon closed",
-  "observed_at": 1700010800000
+  "notes": "Reviewed after horizon close",
+  "observed_at": 1788231599999
 }
 ```
 
-`observed_at` must follow the decision timestamp plus the forecast horizon duration. `realized_return` means the market close-to-close return over that horizon, not account P&L. Caller-provided outcomes are trusted; the service does not fetch market prices to verify them. Use separate databases for independent strategies/accounts.
+`realized_return` is the market close-to-close return over the forecast horizon, not account P&L. Outcome time must follow the forecast horizon; caller-provided results are trusted rather than verified against an exchange.
 
-## Backtesting
+Backtests signal at candle close and fill at the next open, with 10 bps fee and 5 bps slippage per fill by default. They support long/cash, keep simulated history isolated from live data, add matured outcomes progressively, and report equity, return, maximum drawdown, fills, and open units. Final holdings are marked to market without forced liquidation. `backtest(..., start_at=timestamp)` isolates a later test period while retaining earlier candle context.
 
-```bash
-trade-harness backtest --input examples/market.json
-```
-
-Signals use candle prefixes; fills occur at the **next candle open**, with defaults of 10 bps fee and 5 bps slippage per fill. Supports one full-capital long position or cash. Reports equity, total return, maximum drawdown, trades, and open units. Final holdings are marked to market without forced liquidation. Decision history is isolated from live SQLite data, and matured simulated outcomes are added progressively. Python callers can customize costs, cash, and candle-window length through `backtest()`.
-
-Backtests exclude funding, market impact, spreads beyond modeled slippage, partial fills, exchange constraints, and intra-candle execution. LLM calls can make backtests slow and incur provider charges. Historical replay cannot remove knowledge already present in a pretrained language model; evaluate this risk separately.
-
-## Extending the harness
-
-Implement `predict(market, history) -> Proposal` and a `name` property, then pass your model to `Harness(model, Store(...))`. Edit `models.py` to register a backend. Configure confidence and volatility thresholds through the Harness constructor. Position and forecast-consistency checks run after every backend prediction.
-
-```text
-Input arrays -> Validation -> Prior decision/outcome context -> Model
-            -> Forecast/position/confidence/volatility checks -> Stored decision
-Recorded outcomes -> Reviewed training examples -> Custom model adapter
-Historical candles -> Chronological training / next-open backtesting
-```
+They exclude funding, full spread dynamics, market impact, partial fills, and exchange constraints. Remote language-model backtests can incur provider charges. Pretrained language models may already know historical market events; this cannot be eliminated by chronological fine-tuning splits alone.
 
 ## Development
 
@@ -170,6 +198,4 @@ ruff format --check .
 pytest -q
 ```
 
-GitHub Actions runs lint and tests. Tests cover malformed OHLCV, provider failures, model output validation, future-outcome exclusion, next-open execution and costs, training leakage, API behavior, and export structure. Language-model HTTP calls are mocked; live provider behavior and GPU training require configured infrastructure.
-
-No exchange execution is included. The HTTP API has no authentication and is intended to run locally; add authentication and access controls before exposing it. Forecasts and signals are research outputs and do not establish profitable trading performance.
+GitHub CI runs lint and tests. Unit tests mock remote providers; real-data inference and local model training were also executed during project validation. Data/model attribution is in [THIRD_PARTY.md](THIRD_PARTY.md). Original project code uses the MIT license.

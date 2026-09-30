@@ -1,0 +1,131 @@
+{
+  "dataset": {
+    "path": "data/BTCUSDT-1h.json",
+    "candles": 8760,
+    "symbol": "BTCUSDT",
+    "timeframe": "1h",
+    "horizon": 3,
+    "test_start": 1783493999999,
+    "test_end": 1788220799999
+  },
+  "forecast": {
+    "test_samples": 1311,
+    "mae": 0.004097142598558464,
+    "zero_return_mae": 0.004059483687835172,
+    "direction_accuracy": 0.4424103737604882
+  },
+  "backtest": {
+    "total_return": 0.0,
+    "max_drawdown": 0.0,
+    "trades": [],
+    "open_units": 0.0,
+    "valuation": "mark-to-market; final position not liquidated"
+  },
+  "costs": {
+    "fee_bps": 10,
+    "slippage_bps": 5
+  },
+  "limitations": [
+    "Single asset and timeframe",
+    "One chronological test period",
+    "No demonstrated profitable edge",
+    "No live exchange execution",
+    "Pretrained LLM may know historical market events"
+  ],
+  "language_model": {
+    "version": 1,
+    "base_model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+    "base_revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+    "symbol": "BTCUSDT",
+    "timeframe": "1h",
+    "horizon": 3,
+    "trained_until": 1778759999999,
+    "class_returns": {
+      "BUY": 0.0094708420440684,
+      "SELL": -0.009977760579782731,
+      "HOLD": 5.21334337117114e-05
+    },
+    "threshold": 0.003,
+    "label_source": "future market returns; automatic directional labels, not human judgments",
+    "train_examples": 764,
+    "steps": 120,
+    "seed": 42,
+    "stride": 8,
+    "training_metrics": {
+      "train_runtime": 334.7578,
+      "train_samples_per_second": 1.434,
+      "train_steps_per_second": 0.358,
+      "total_flos": 55601943367680.0,
+      "train_loss": 0.405648930867513,
+      "epoch": 0.6282722513089005
+    },
+    "feature_contract": "compact_prompt v1: six OHLCV features, four indicators, prior action/outcome",
+    "evaluation": {
+      "validation": {
+        "samples": 96,
+        "direction_accuracy": 0.3645833333333333,
+        "training_majority_baseline_accuracy": 0.3645833333333333,
+        "forecast_mae": 0.0072313353619664145,
+        "zero_return_mae": 0.0072924017444501695,
+        "predicted_counts": {
+          "HOLD": 90,
+          "BUY": 6
+        },
+        "label_counts": {
+          "BUY": 29,
+          "SELL": 32,
+          "HOLD": 35
+        },
+        "first_timestamp": 1778763599999,
+        "last_timestamp": 1783457999999
+      },
+      "test": {
+        "samples": 96,
+        "direction_accuracy": 0.4479166666666667,
+        "training_majority_baseline_accuracy": 0.4583333333333333,
+        "forecast_mae": 0.004730524776780116,
+        "zero_return_mae": 0.0045983055419261945,
+        "predicted_counts": {
+          "HOLD": 95,
+          "BUY": 1
+        },
+        "label_counts": {
+          "SELL": 25,
+          "BUY": 27,
+          "HOLD": 44
+        },
+        "first_timestamp": 1783493999999,
+        "last_timestamp": 1788188399999
+      }
+    },
+    "dataset_sha256": "8255f986bb4ec9297c540940c45af2d10979161504b9dbdc1035c3c2be8b562a",
+    "samples_processed": 480,
+    "training_versions": {
+      "torch": "2.14.0+cpu",
+      "transformers": "4.57.6",
+      "peft": "0.21.1",
+      "datasets": "4.8.5",
+      "accelerate": "1.15.0"
+    },
+    "device": "CPU"
+  },
+  "language_model_runtime_backtest": {
+    "test_subset": "final 168 hourly candles of held-out test; signals available at 167 closes",
+    "start_at": 1787619599999,
+    "end_at": 1788220799999,
+    "total_return": 0.0,
+    "max_drawdown": 0.0,
+    "trades": [],
+    "open_units": 0.0,
+    "valuation": "mark-to-market; final position not liquidated"
+  },
+  "verification": {
+    "pytest": "15 passed",
+    "ruff": "passed",
+    "numerical_cli": "passed",
+    "local_language_cli": "passed",
+    "local_language_http_api": "HTTP 200; no model failure",
+    "wheel_assets": "verified including weights and chat template",
+    "wheel_numeric_inference_outside_repository": "passed"
+  }
+}

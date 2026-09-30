@@ -12,6 +12,7 @@ def backtest(
     slippage_bps=5.0,
     initial_cash=10000.0,
     window=100,
+    start_at=None,
 ):
     """Signals at candle close; fills at the NEXT open, long/flat only."""
     if fee_bps < 0 or slippage_bps < 0 or fee_bps + slippage_bps >= 10000:
@@ -29,6 +30,11 @@ def backtest(
                 (i for i, t in enumerate(market.timestamps) if t > model.trained_until),
                 len(market.ohlc),
             ),
+        )
+    if start_at is not None:
+        start = max(
+            start,
+            next((i for i, t in enumerate(market.timestamps) if t >= start_at), len(market.ohlc)),
         )
     if start >= len(market.ohlc) - 1:
         raise ValueError("No out-of-sample candles available for backtest")
