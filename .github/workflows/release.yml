@@ -172,9 +172,10 @@ jobs:
         run: |
           python scripts/release_manifest.py --version "${RELEASE_TAG#v}" --commit "$RELEASE_COMMIT"
           python -m sigstore sign --bundle release/release-manifest.sigstore.json release/release-manifest.json
-          python -m sigstore verify identity --bundle release/release-manifest.sigstore.json \
+          python -m sigstore verify github --bundle release/release-manifest.sigstore.json \
             --cert-identity "https://github.com/ar4ft/trade-harness/.github/workflows/release.yml@refs/tags/$RELEASE_TAG" \
-            --cert-oidc-issuer https://token.actions.githubusercontent.com release/release-manifest.json
+            --trigger workflow_dispatch --repository ar4ft/trade-harness \
+            --ref "refs/tags/$RELEASE_TAG" release/release-manifest.json
       - name: Publish only after signing succeeds
         env:
           GH_TOKEN: ${{ github.token }}

@@ -2,7 +2,7 @@
 
 Stable releases use a signed manifest covering the exact artifact sizes and SHA256 hashes. GitHub Actions obtains a short-lived Sigstore certificate using its GitHub OIDC identity, signs the manifest, and records it in Sigstore's transparency log. No long-lived project signing key is needed.
 
-The updater trusts only `ar4ft/trade-harness`, the manually dispatched `.github/workflows/release.yml` workflow, and the exact `refs/tags/vVERSION` identity issued by `https://token.actions.githubusercontent.com`. Trust is embedded in the installed bootstrap, not taken from downloaded metadata. Tag, version, repository, URLs, size limits, signature, certificate identity, and transparency proof are checked before installation. A checksum alone is not treated as a signature.
+The updater trusts only `ar4ft/trade-harness`, the manually dispatched `.github/workflows/release.yml` workflow, and the exact `refs/tags/vVERSION` identity issued by `https://token.actions.githubusercontent.com`. Trust is embedded in the installed bootstrap, not taken from downloaded metadata. Certificate claims must also identify the `workflow_dispatch` event, repository, and tag; the GitHub verifier always requires GitHub’s OIDC issuer. Tag, version, repository, URLs, size limits, signature, certificate identity, and transparency proof are checked before installation. A checksum alone is not treated as a signature.
 
 ## User commands
 
@@ -61,11 +61,11 @@ Assets are `trade_harness-VERSION-py3-none-any.whl`, `release-manifest.json`, an
 Manual verification after downloading the manifest and Sigstore bundle:
 
 ```bash
-python -m sigstore verify identity \
+python -m sigstore verify github \
   --bundle release-manifest.sigstore.json \
   --cert-identity 'https://github.com/ar4ft/trade-harness/.github/workflows/release.yml@refs/tags/v0.4.0' \
-  --cert-oidc-issuer https://token.actions.githubusercontent.com \
-  release-manifest.json
+  --trigger workflow_dispatch --repository ar4ft/trade-harness \
+  --ref refs/tags/v0.4.0 release-manifest.json
 ```
 
 Use the actual release tag in the expected identity, then check the downloaded wheel against the authenticated manifest. For an initial install, verify the release with an independently installed Sigstore client before installing the wheel. Release signing is an authenticity check; it does not certify trading profitability.

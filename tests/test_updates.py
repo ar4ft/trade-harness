@@ -12,7 +12,6 @@ from pydantic import ValidationError
 from trade_harness import updater
 from trade_harness.releases import (
     BUNDLE_NAME,
-    ISSUER,
     MANIFEST_NAME,
     ReleaseManifest,
     artifact_url,
@@ -241,7 +240,10 @@ def test_identity_and_issuer_are_pinned(monkeypatch, tmp_path):
     assert command[command.index("--cert-identity") + 1] == (
         "https://github.com/ar4ft/trade-harness/.github/workflows/release.yml@refs/tags/v0.5.0"
     )
-    assert command[command.index("--cert-oidc-issuer") + 1] == ISSUER
+    assert command[3:5] == ["verify", "github"]
+    assert command[command.index("--trigger") + 1] == "workflow_dispatch"
+    assert command[command.index("--repository") + 1] == "ar4ft/trade-harness"
+    assert command[command.index("--ref") + 1] == "refs/tags/v0.5.0"
 
 
 def test_download_redirect_cannot_send_request_to_untrusted_host(tmp_path):
