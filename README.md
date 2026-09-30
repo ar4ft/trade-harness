@@ -1,6 +1,6 @@
 # Trade Harness
 
-A working CLI, HTTP API, and browser dashboard for trading research. Pass closed OHLC candles, volume, aligned indicators, symbol, timeframe, and decision history. Receive BUY / SELL / HOLD probabilities, a return forecast, projected price, and a separate risk-controlled execution decision.
+A decision-only CLI, HTTP API, and browser dashboard for trading research. Pass closed OHLC candles, volume, aligned indicators, symbol, timeframe, and decision history. Receive BUY / SELL / HOLD probabilities, a return forecast, projected price, and a separate risk-controlled execution decision.
 
 Includes **70,128 real hourly candles across BTCUSDT, ETHUSDT, and SOLUSDT**, trained numerical model weights, and a custom SmolLM2 language-model LoRA adapter. Jev/TypeSafe-style typed fields expose direction, execution, risk level, regime, and rule results with their sources.
 
@@ -77,7 +77,7 @@ curl http://127.0.0.1:8000/decisions \
   --data-binary @src/trade_harness/assets/latest.json
 ```
 
-Responses include `proposed_action`, final `action`, model probabilities/calibration, forecast/return interval where available, `execution` sizing/stops/reasons, `guardrails`, model version, and typed `fields`. Numerical direction does not assert that an account should place a trade. A long account requires its actual snapshot for sizing/exits; `/decisions` alone cannot reconstruct it. Use the persisted paper runner or `POST /paper/tick` for account-aware decisions.
+Responses include `proposed_action`, final `action`, model probabilities/calibration, forecast/return interval where available, `execution` simulated sizing/stops/reasons, `guardrails`, model version, typed `fields`, and per-asset `trading_validation`. Default `mode` is `decision_only` and `real_execution_enabled` is always `false`. Numerical direction does not assert that an account should place a trade. A long account requires its actual snapshot for sizing/exits; `/decisions` alone cannot reconstruct it. Use the persisted paper runner or `POST /paper/tick` for account-aware decisions.
 
 ## Jev-style fields and Nimble
 
@@ -114,7 +114,7 @@ Exact results: [reports/walk-forward.json](reports/walk-forward.json).
 | Final-test mean research account return | +0.675% vs −0.365% momentum |
 | Deployment status | **research_only** |
 
-Selection used lowest mean walk-forward log loss. Deployment additionally required positive mean net return, at least 20 closed trades, at least two positive folds, and Brier improvement over the prior baseline. Both candidates failed the positive-return gate. The encouraging final-test result does not override that gate. Asset results use independent $10,000 accounts, not a shared portfolio. Costs are a fixed approximation; this is one later market period, not proof of future profit.
+Selection uses lowest mean walk-forward log loss. The `walk-forward-edge-v1` validation policy additionally requires at least three purged folds, positive mean net return, at least 20 closed trades, at least two positive folds, Brier improvement, an advantage over momentum, positive return in a doubled-cost replay, a positive fold-bootstrap interval lower bound, and exclusion of the final test. The pooled model and the requested asset must qualify. Neither candidate nor any individual asset currently passes all checks. The encouraging final-test result does not override that gate. Asset results use independent $10,000 accounts, not a shared portfolio. Costs are a fixed approximation; this is one later market period, not proof of future profit.
 
 ## Custom language model and distribution
 
@@ -139,7 +139,7 @@ An alternative model can use `--backend llm` with an OpenAI-compatible JSON chat
 
 ## API and verification
 
-Endpoints include `/health`, `/decisions`, `/feedback`, `/backtest`, `/paper/runs`, `/paper/{run_id}/events`, `/paper/tick`, and `/v1/systemone`. Set `TRADING_API_KEY` to require Bearer authentication for data/action endpoints. Dashboard credentials are kept in browser memory. Bind locally by default; terminate HTTPS and manage access separately for remote deployment. Environment variables are listed in `.env.example`; it is not loaded automatically.
+Endpoints include `/health`, `/validation`, `/decisions`, `/feedback`, `/backtest`, `/paper/runs`, `/paper/{run_id}/events`, `/paper/tick`, and `/v1/systemone`. Set `TRADING_API_KEY` to require Bearer authentication for data/action endpoints. Dashboard credentials are kept in browser memory. Bind locally by default; terminate HTTPS and manage access separately for remote deployment. Environment variables are listed in `.env.example`; it is not loaded automatically.
 
 ```bash
 ruff check .
@@ -153,3 +153,14 @@ Tests cover temporal boundaries, portable model prediction parity, typed probabi
 Automatic builds produce unsigned development artifacts; signing and publication require a manual Actions run with `sign_release` enabled. Stable release manifests are signed with Sigstore using this repository's tagged GitHub Actions identity. `trade-harness update --check` verifies availability; `trade-harness update --apply` stages a verified upgrade. Launch with `trade-harness-managed -- decide`, `-- paper --steps 0`, or `-- serve` to check automatically at startup, at most once per day. Running processes keep their current version until restarted.
 
 A macOS Developer ID Installer signing/notarization pipeline is prepared; it requires Apple Developer credentials before notarized installers can be released. See [release and update documentation](docs/releases-and-updates.md) for trust checks, deployment behavior, credential names, and activation. The portable signed wheel and prepared Apple notarization pipeline are distinct release capabilities.
+
+## Trading validation for recommendations
+
+```bash
+trade-harness validate --output reports/trading-validation.json
+curl http://127.0.0.1:8000/validation?symbol=BTCUSDT
+```
+
+Validation exposes measured returns, the doubled-fee/slippage replay, momentum comparison, sample counts, a descriptive 95% interval, each gate, and failure reasons. Each recommendation carries evidence bound to its asset, timeframe, horizon, and model version. Provider-generated claims of successful validation are not accepted as evidence.
+
+The selected model's mean walk-forward return remains **−0.304%**, and its doubled-cost replay returns **−0.202%**. Its descriptive interval crosses zero. It remains `research_only`. These expanded checks audit an already examined dataset; establish future evidence using fresh periods, without choosing thresholds from the final test. Validation measures a fixed simulated policy and does not guarantee individual decisions or future profitability. Passing never enables real orders. See [docs/trading-validation.md](docs/trading-validation.md).

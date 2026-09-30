@@ -34,6 +34,7 @@ def main():
             "status",
             "update",
             "serve",
+            "validate",
         ],
     )
     parser.add_argument("--input")
@@ -101,6 +102,16 @@ def main():
         import uvicorn
 
         uvicorn.run("trade_harness.api:app", host=args.host, port=args.port)
+        return
+    if args.command == "validate":
+        from .learning import DecisionModel
+        from .validation import validation_report
+
+        model = DecisionModel(args.input) if args.input else load_model()
+        result = validation_report(model)
+        if args.output:
+            Path(args.output).write_text(json.dumps(result, indent=2))
+        print(json.dumps(result, indent=2))
         return
     if args.command == "evaluate":
         from .evaluation import evaluate

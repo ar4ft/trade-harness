@@ -15,7 +15,7 @@ from .risk import Quote, RiskConfig
 from .schemas import Decision, Feedback, MarketInput, StrictModel
 from .storage import Store
 
-app = FastAPI(title="Trade Harness", version="0.4.0")
+app = FastAPI(title="Trade Harness", version="0.4.1")
 
 
 @lru_cache
@@ -31,7 +31,14 @@ def runtime():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "mode": "research/paper"}
+    return {"status": "ok", "mode": "decision_only", "real_execution_enabled": False}
+
+
+@app.get("/validation")
+def trading_validation(symbol: str | None = None):
+    from .validation import validation_report
+
+    return validation_report(runtime().model, symbol)
 
 
 @app.post("/decisions", response_model=Decision)

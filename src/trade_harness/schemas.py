@@ -2,6 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .validation import TradingValidation
+
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
@@ -69,6 +71,7 @@ class Proposal(StrictModel):
     validation_status: Literal["validated", "research_only", "unknown"] = "unknown"
     model_version: str | None = None
     forecast_interval: list[float] | None = None
+    trading_validation: TradingValidation | None = None
 
     @model_validator(mode="after")
     def validate_optional_distribution(self):
@@ -95,6 +98,8 @@ class Proposal(StrictModel):
 
 
 class Decision(Proposal):
+    mode: Literal["decision_only", "paper"] = "decision_only"
+    real_execution_enabled: Literal[False] = False
     id: str
     symbol: str
     timeframe: str

@@ -12,6 +12,7 @@ from trade_harness.risk import Account, Quote, RiskConfig, evaluate
 from trade_harness.schemas import Forecast, MarketInput, Proposal
 from trade_harness.storage import Store, timeframe_ms
 from trade_harness.typed import ChoiceResult, ScoreResult
+from trade_harness.validation import TradingValidation
 
 
 @pytest.fixture
@@ -45,6 +46,8 @@ class FixedModel:
             rationale="Controlled test signal",
             probabilities={a: 0.9 if a == self.action else 0.05 for a in ("BUY", "SELL", "HOLD")},
             validation_status=self.status,
+            model_version=self.version,
+            trading_validation=self.validation_for(market.symbol),
             probability_calibration="test",
             forecast=Forecast(
                 horizon=market.horizon,
@@ -52,6 +55,26 @@ class FixedModel:
                 projected_close=market.ohlc[-1][3] * (1 + self.expected),
                 method="test",
             ),
+        )
+
+    def validation_for(self, symbol):
+        # Synthetic passing evidence isolates risk/persistence behavior in these unit tests.
+        return TradingValidation(
+            symbol=symbol,
+            timeframe="1h",
+            horizon=3,
+            model_version=self.version,
+            fold_count=3,
+            closed_trades=30,
+            positive_folds=3,
+            mean_net_return=0.02,
+            mean_momentum_return=0.01,
+            mean_cost_stressed_return=0.01,
+            mean_return_interval=[0.01, 0.03],
+            brier_improvement=0.01,
+            purged_boundaries=True,
+            evaluated_until=1600000000000,
+            final_test_start=1600000000001,
         )
 
 

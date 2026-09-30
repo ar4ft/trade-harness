@@ -29,6 +29,7 @@ class PaperEngine:
             max_volatility=self.config.max_volatility,
             risk_config=self.config,
             scope=run_id,
+            mode="paper",
         )
         version = getattr(model, "version", model.name)
         with store.transaction():

@@ -17,6 +17,7 @@ from threadpoolctl import threadpool_limits
 from .data import ensure_indicators
 from .features import FEATURE_NAMES, INDICATOR_FEATURE_NAMES, features
 from .schemas import Forecast, MarketInput, Proposal
+from .validation import TradingValidation
 
 ACTIONS = ["BUY", "SELL", "HOLD"]
 MODEL_FEATURES = (
@@ -355,6 +356,17 @@ class DecisionModel:
         self.trained_until = self.artifact["trained_until"]
         self.version = self.artifact.get("model_version", "development")
 
+    def validation_for(self, symbol):
+        evidence = self.artifact.get("validation_per_asset", {}).get(symbol)
+        if evidence is None:
+            return TradingValidation(
+                symbol=symbol,
+                timeframe=self.artifact["timeframe"],
+                horizon=self.artifact["horizon"],
+                model_version=self.version,
+            )
+        return TradingValidation.model_validate(evidence)
+
     def predict(self, market, history):
         a = self.artifact
         if market.symbol not in a["symbols"] or (market.timeframe, market.horizon) != (
@@ -369,6 +381,12 @@ class DecisionModel:
         action = ACTIONS[int(probability.argmax())]
         expected = float(np.clip(expected_return(a, x), -0.95, 1))
         interval = [float(expected + q) for q in a["residual_quantiles"]]
+        validation = self.validation_for(market.symbol)
+        validated = (
+            validation.positive_edge
+            and validation.applies_to(market, self.version)
+            and a["validation_status"] == "validated"
+        )
         return Proposal(
             action=action,
             confidence=float(max(probability)),
@@ -381,7 +399,8 @@ class DecisionModel:
             ),
             probabilities={key: float(p) for key, p in zip(ACTIONS, probability)},
             probability_calibration="temperature fitted on chronological calibration data",
-            validation_status=a["validation_status"],
+            validation_status="validated" if validated else "research_only",
+            trading_validation=validation,
             model_version=self.version,
             forecast_interval=interval,
         )

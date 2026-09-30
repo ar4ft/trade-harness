@@ -1,11 +1,10 @@
-Signed releases and verified automatic updates for Trade Harness.
+Decision-only trading validation for Trade Harness.
 
-- Automatic unsigned development builds, with signing/publication enabled only by explicit manual workflow dispatch.
-- Keyless Sigstore release manifests tied to this repository's tagged GitHub release workflow.
-- Managed startup updates with signature/hash checks, downgrade protection, isolated staging, atomic activation, and retention of the previous environment.
-- CLI update/check commands and a managed launcher for decisions, paper trading, and the HTTP/browser monitor.
-- Prepared Developer ID Installer signing, Apple notarization, ticket stapling, and Gatekeeper validation for a universal macOS Python launcher package.
+- Per-asset walk-forward evidence attached to recommendations, with mode and real_execution_enabled=false.
+- Purged temporal checks, momentum comparison, doubled-fee/slippage replay, and descriptive fold-bootstrap intervals.
+- A standalone validate command and GET /validation endpoint.
+- Independent artifact-based evidence; provider-generated validation claims cannot promote a model.
 
-The macOS installer is included only when Apple credentials and notarization are enabled. Otherwise this release contains the signed portable wheel. Python 3.11+ is required. External llamafile runtimes are distributed separately.
+The current models and all assets remain research-only: no positive edge has been established. Passing checks does not enable real orders. Simulated replay is retained for measuring decision quality.
 
-Trading models remain research-only; default policy blocks unvalidated entries. No live exchange order execution is enabled by installation or updating.
+Development builds remain unsigned. Signing/publication continues to require explicit manual workflow dispatch; Apple notarization awaits its configured credentials.

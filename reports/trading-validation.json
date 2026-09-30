@@ -1,0 +1,173 @@
+{
+  "mode": "decision_only",
+  "real_execution_enabled": false,
+  "backend": "calibrated-market-decisions-v1",
+  "model_version": "ae00bae3d2868923",
+  "validation": {
+    "policy_version": "walk-forward-edge-v1",
+    "method": "purged_walk_forward_paper_replay",
+    "symbol": null,
+    "timeframe": "1h",
+    "horizon": 3,
+    "model_version": "ae00bae3d2868923",
+    "fold_count": 3,
+    "closed_trades": 98,
+    "positive_folds": 2,
+    "mean_net_return": -0.0030397520318660534,
+    "mean_momentum_return": -0.005712791471641683,
+    "mean_cost_stressed_return": -0.0020218193044426367,
+    "mean_return_interval": [
+      -0.013750768882474396,
+      0.0033998389421763253
+    ],
+    "brier_improvement": 0.031739988369616445,
+    "purged_boundaries": true,
+    "evaluated_until": 1771397999998,
+    "final_test_start": 1771397999999,
+    "gates": {
+      "at_least_three_folds": true,
+      "positive_net_return": false,
+      "at_least_20_closed_trades": true,
+      "two_positive_folds": true,
+      "brier_better_than_prior": true,
+      "beats_momentum_after_costs": true,
+      "positive_with_double_costs": false,
+      "positive_interval_lower_bound": false,
+      "purged_chronological_boundaries": true,
+      "final_test_excluded": true
+    },
+    "failed_gates": [
+      "positive_net_return",
+      "positive_with_double_costs",
+      "positive_interval_lower_bound"
+    ],
+    "positive_edge": false,
+    "status": "research_only"
+  },
+  "per_asset": {
+    "BTCUSDT": {
+      "policy_version": "walk-forward-edge-v1",
+      "method": "purged_walk_forward_paper_replay",
+      "symbol": "BTCUSDT",
+      "timeframe": "1h",
+      "horizon": 3,
+      "model_version": "ae00bae3d2868923",
+      "fold_count": 3,
+      "closed_trades": 8,
+      "positive_folds": 2,
+      "mean_net_return": 0.0031104586176440296,
+      "mean_momentum_return": -0.0072849661801195715,
+      "mean_cost_stressed_return": 0.00048600392855628155,
+      "mean_return_interval": [
+        0.0,
+        0.005400753521577872
+      ],
+      "brier_improvement": 0.062429311813396726,
+      "purged_boundaries": true,
+      "evaluated_until": 1771397999998,
+      "final_test_start": 1771397999999,
+      "gates": {
+        "at_least_three_folds": true,
+        "positive_net_return": true,
+        "at_least_20_closed_trades": false,
+        "two_positive_folds": true,
+        "brier_better_than_prior": true,
+        "beats_momentum_after_costs": true,
+        "positive_with_double_costs": true,
+        "positive_interval_lower_bound": false,
+        "purged_chronological_boundaries": true,
+        "final_test_excluded": true
+      },
+      "failed_gates": [
+        "at_least_20_closed_trades",
+        "positive_interval_lower_bound"
+      ],
+      "positive_edge": false,
+      "status": "research_only"
+    },
+    "ETHUSDT": {
+      "policy_version": "walk-forward-edge-v1",
+      "method": "purged_walk_forward_paper_replay",
+      "symbol": "ETHUSDT",
+      "timeframe": "1h",
+      "horizon": 3,
+      "model_version": "ae00bae3d2868923",
+      "fold_count": 3,
+      "closed_trades": 41,
+      "positive_folds": 2,
+      "mean_net_return": -0.008177092848482484,
+      "mean_momentum_return": -0.005403484313493134,
+      "mean_cost_stressed_return": -0.009564867524936313,
+      "mean_return_interval": [
+        -0.03299191652417144,
+        0.005630527288314591
+      ],
+      "brier_improvement": 0.01779625515981838,
+      "purged_boundaries": true,
+      "evaluated_until": 1771397999998,
+      "final_test_start": 1771397999999,
+      "gates": {
+        "at_least_three_folds": true,
+        "positive_net_return": false,
+        "at_least_20_closed_trades": true,
+        "two_positive_folds": true,
+        "brier_better_than_prior": true,
+        "beats_momentum_after_costs": false,
+        "positive_with_double_costs": false,
+        "positive_interval_lower_bound": false,
+        "purged_chronological_boundaries": true,
+        "final_test_excluded": true
+      },
+      "failed_gates": [
+        "positive_net_return",
+        "beats_momentum_after_costs",
+        "positive_with_double_costs",
+        "positive_interval_lower_bound"
+      ],
+      "positive_edge": false,
+      "status": "research_only"
+    },
+    "SOLUSDT": {
+      "policy_version": "walk-forward-edge-v1",
+      "method": "purged_walk_forward_paper_replay",
+      "symbol": "SOLUSDT",
+      "timeframe": "1h",
+      "horizon": 3,
+      "model_version": "ae00bae3d2868923",
+      "fold_count": 3,
+      "closed_trades": 49,
+      "positive_folds": 1,
+      "mean_net_return": -0.004052621864759705,
+      "mean_momentum_return": -0.004449923921312345,
+      "mean_cost_stressed_return": 0.0030134056830521208,
+      "mean_return_interval": [
+        -0.01366114364482962,
+        0.0034387838047653663
+      ],
+      "brier_improvement": 0.014994398135634227,
+      "purged_boundaries": true,
+      "evaluated_until": 1771397999998,
+      "final_test_start": 1771397999999,
+      "gates": {
+        "at_least_three_folds": true,
+        "positive_net_return": false,
+        "at_least_20_closed_trades": true,
+        "two_positive_folds": false,
+        "brier_better_than_prior": true,
+        "beats_momentum_after_costs": true,
+        "positive_with_double_costs": true,
+        "positive_interval_lower_bound": false,
+        "purged_chronological_boundaries": true,
+        "final_test_excluded": true
+      },
+      "failed_gates": [
+        "positive_net_return",
+        "two_positive_folds",
+        "positive_interval_lower_bound"
+      ],
+      "positive_edge": false,
+      "status": "research_only"
+    }
+  },
+  "interpretation": "Evidence for a fixed simulated decision policy; passing does not guarantee future profitability or enable orders."
+}

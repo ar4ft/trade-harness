@@ -13,6 +13,7 @@ from .paper import PaperEngine
 from .risk import RiskConfig
 from .schemas import Forecast, Proposal
 from .storage import Store
+from .validation import summarize_folds
 
 
 class CachedModel:
@@ -153,6 +154,12 @@ def evaluate(
     if folds < 2 or folds > 6:
         raise ValueError("Use two to six chronological folds")
     config = RiskConfig(allow_research=True)
+    stressed_config = config.model_copy(
+        update={
+            "fee_bps": config.fee_bps * 2,
+            "slippage_bps": config.slippage_bps * 2,
+        }
+    )
     data = load_dataset(paths, config.roundtrip_cost)
     series, _ = load_series(paths)
     unique = np.unique(data.timestamp)
@@ -166,7 +173,11 @@ def evaluate(
         "objective": "Long/cash, hourly bars, 3-candle return forecast, net outcome after costs",
         "risk_config": config.model_dump(),
         "test_start": test_start,
-        "selection_rule": "Lowest mean walk-forward log loss; deployment requires positive mean net return, at least 20 closed trades, positive returns in >=2 folds, and Brier improvement over the train-prior baseline.",
+        "selection_rule": "Lowest mean walk-forward log loss; decision validation requires all walk-forward-edge-v1 gates, using validation folds only.",
+        "mode": "decision_only",
+        "real_execution_enabled": False,
+        "validation_policy": "walk-forward-edge-v1",
+        "cost_stress_config": stressed_config.model_dump(),
         "folds": [],
         "candidates": {},
         "final_test": {},
@@ -176,6 +187,9 @@ def evaluate(
             "Fixed fee/slippage model",
             "OHLC stops are conservative when both stop and target touch",
             "Pending final orders are not filled after the test boundary",
+            "Paper replay measures a fixed decision/risk policy; no real orders are sent",
+            "Fold bootstrap interval is descriptive; few folds and market dependence limit inference",
+            "New gates are a retrospective audit on this already examined dataset; future validation needs fresh periods",
         ],
     }
     performances = {kind: [] for kind in ("logistic", "boosted")}
@@ -201,7 +215,16 @@ def evaluate(
             "validation_samples": len(validation.y),
             "fit_labels_last": int(training.observed_at.max()),
             "calibration_first": calibration_start,
+            "calibration_labels_last": int(calibration.observed_at.max()),
+            "validation_labels_last": int(validation.observed_at.max()),
             "train_prior_baseline": baseline,
+            "prior_metrics_per_asset": {
+                symbol: calibration_metrics(
+                    np.tile(prior, (int((validation.symbol == symbol).sum()), 1)),
+                    validation.y[validation.symbol == symbol],
+                )
+                for symbol in sorted(series)
+            },
             "models": {},
         }
         for kind in performances:
@@ -211,9 +234,19 @@ def evaluate(
             metrics["return_mae"] = float(np.mean(abs(expected - validation.returns)))
             metrics["zero_return_mae"] = float(np.mean(abs(validation.returns)))
             simulation = _simulate(series, CachedModel(artifact, validation), start, end, config)
+            stressed = _simulate(
+                series, CachedModel(artifact, validation), start, end, stressed_config
+            )
             entry = {
                 "metrics": metrics,
                 "per_asset": simulation,
+                "cost_stress_per_asset": stressed,
+                "metrics_per_asset": {
+                    symbol: calibration_metrics(
+                        p[validation.symbol == symbol], validation.y[validation.symbol == symbol]
+                    )
+                    for symbol in sorted(series)
+                },
                 "mean_account_return": _mean_return(simulation),
                 "closed_trades": sum(r["closed_trades"] for r in simulation.values()),
             }
@@ -242,11 +275,12 @@ def evaluate(
         brier_improvement = float(
             np.mean([baseline["brier"] - entry["metrics"]["brier"] for entry, baseline in results])
         )
-        gates = {
-            "positive_net_return": net > 0,
-            "at_least_20_closed_trades": closed >= 20,
-            "two_positive_folds": positive >= 2,
-            "brier_better_than_prior": brier_improvement > 0,
+        evidence = summarize_folds(report["folds"], kind, data.timeframe, data.horizon, test_start)
+        per_asset = {
+            symbol: summarize_folds(
+                report["folds"], kind, data.timeframe, data.horizon, test_start, symbol
+            ).model_dump()
+            for symbol in sorted(series)
         }
         report["candidates"][kind] = {
             "mean_log_loss": logloss,
@@ -254,8 +288,10 @@ def evaluate(
             "closed_trades": closed,
             "positive_folds": positive,
             "brier_improvement": brier_improvement,
-            "deployment_gates": gates,
-            "validation_status": "validated" if all(gates.values()) else "research_only",
+            "deployment_gates": evidence.gates,
+            "validation_status": evidence.status,
+            "trading_validation": evidence.model_dump(),
+            "validation_per_asset": per_asset,
         }
     selected = min(performances, key=lambda kind: report["candidates"][kind]["mean_log_loss"])
     report["selected_model"] = selected
@@ -272,6 +308,11 @@ def evaluate(
     artifact["model_version"] = hashlib.sha256(
         json.dumps(artifact, sort_keys=True).encode()
     ).hexdigest()[:16]
+    artifact["trading_validation"] = report["candidates"][selected]["trading_validation"]
+    artifact["trading_validation"]["model_version"] = artifact["model_version"]
+    artifact["validation_per_asset"] = report["candidates"][selected]["validation_per_asset"]
+    for evidence in artifact["validation_per_asset"].values():
+        evidence["model_version"] = artifact["model_version"]
     test = data.subset(data.timestamp >= test_start)
     # Selection/deployment criteria are locked above; the final test never chooses model or thresholds.
     p, expected = predict_batch(artifact, test.x)
