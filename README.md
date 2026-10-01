@@ -6,6 +6,25 @@ Includes **70,128 real hourly candles across BTCUSDT, ETHUSDT, and SOLUSDT**, tr
 
 The model has **not demonstrated a profitable walk-forward edge**. Default risk policy blocks new entries from research models. `--research` explicitly enables simulated entries. SELL closes a long position; this version supports long/cash paper trading, with no exchange order placement, leverage, or shorts.
 
+## How it works
+
+```mermaid
+flowchart LR
+    Input["Closed OHLCV and indicators"] --> Evidence["TimesFM forecast and causal features"]
+    Evidence --> Anchor["Numerical direction and return estimate"]
+    Evidence --> Reviewers["Local language or optional typed reviewers"]
+    Anchor --> Consensus["Confirm numerical direction or HOLD"]
+    Reviewers --> Consensus
+    Consensus --> Risk["Deterministic risk and validation checks"]
+    Risk --> Output["Final decision and audit"]
+    Output --> Store[("SQLite history and paper accounts")]
+    Store --> Dashboard["Browser monitor"]
+```
+
+The default reviewer is the shipped local LoRA adapter. Ollaya and other providers are optional reviewers. Each receives the same forecast/feature evidence without the numerical anchor's action or probabilities. Consensus confirms the anchor; risk checks can still block a proposal or force a protective exit. Numerical `forecast` and TimesFM `forecast_evidence` are separate estimates.
+
+Start with the [architecture and decision lifecycle](docs/architecture.md) for model roles, request sequence, failure handling, paper accounts, offline tuning, language training and deployment diagrams. Configure reviewers in [orchestration](docs/orchestration.md), and interpret quality claims using [trading validation](docs/trading-validation.md).
+
 ## Start
 
 Python 3.11+:
@@ -206,10 +225,10 @@ A macOS Developer ID Installer signing/notarization pipeline is prepared; it req
 ## Trading validation for recommendations
 
 ```bash
-trade-harness validate --output reports/trading-validation.json
+trade-harness validate --backend decision --output reports/trading-validation.json
 curl http://127.0.0.1:8000/validation?symbol=BTCUSDT
 ```
 
-Validation exposes measured returns, the doubled-fee/slippage replay, momentum comparison, sample counts, a descriptive 95% interval, each gate, and failure reasons. Each recommendation carries evidence bound to its asset, timeframe, horizon, and model version. Provider-generated claims of successful validation are not accepted as evidence.
+The explicit `decision` command above inspects the standalone numerical artifact. Without that override, CLI/API validation inspects the default orchestrator, which has no independent positive-edge certification and does not inherit the anchor's evidence. Artifact validation exposes measured returns, the doubled-fee/slippage replay, momentum comparison, sample counts, a descriptive 95% interval, each gate, and failure reasons. Each recommendation carries evidence bound to its asset, timeframe, horizon, and model version. Provider-generated claims of successful validation are not accepted as evidence.
 
-The selected model's mean walk-forward return remains **−0.304%**, and its doubled-cost replay returns **−0.202%**. Its descriptive interval crosses zero. It remains `research_only`. These expanded checks audit an already examined dataset; establish future evidence using fresh periods, without choosing thresholds from the final test. Validation measures a fixed simulated policy and does not guarantee individual decisions or future profitability. Passing never enables real orders. See [docs/trading-validation.md](docs/trading-validation.md).
+The selected standalone numerical model's mean walk-forward return remains **−0.304%**, and its doubled-cost replay returns **−0.202%**. Its descriptive interval crosses zero. It remains `research_only`. These expanded checks audit an already examined dataset; establish future evidence using fresh periods, without choosing thresholds from the final test. Validation measures a fixed simulated policy and does not guarantee individual decisions or future profitability. Passing never enables real orders. See [docs/trading-validation.md](docs/trading-validation.md).

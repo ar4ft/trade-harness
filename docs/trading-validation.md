@@ -4,6 +4,8 @@ This project returns recommendations and measures them through simulated replay.
 
 `trade-harness validate` reads the configured model's measured evidence. `GET /validation` exposes the same data; `?symbol=BTCUSDT` selects an asset. Each `/decisions` response includes `trading_validation` with the asset, timeframe, horizon, model version, measured statistics, gate results, and failure reasons. `--input path/to/decision-model.json` lets the validation command inspect another numerical artifact.
 
+The default orchestrator has no independent walk-forward edge evidence and remains research-only. It does not inherit validation from the numerical anchor. Use `trade-harness validate --backend decision` to inspect the standalone numerical results summarized below, or `--backend hybrid` to inspect the hybrid artifact. `GET /validation` always reports the server's configured backend.
+
 ## What qualifies as evidence
 
 The trainer uses chronological, shared cross-asset boundaries. Features and normalization use available history; labels crossing fit/calibration/validation boundaries are purged. Validation folds do not overlap. The final 20% cannot choose the model, thresholds, or validation status.

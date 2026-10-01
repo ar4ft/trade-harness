@@ -14,6 +14,8 @@ flowchart LR
   Consensus --> Risk[Risk checks and decision output]
 ```
 
+See the [full architecture](architecture.md) for the request sequence and how this reviewer connects to risk and paper accounts.
+
 ## Setup
 
 Install Ollaya using its own release instructions, then start its daemon in a separate terminal. The harness does not install or update the daemon, pull weights, or run an installer automatically.

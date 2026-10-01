@@ -10,6 +10,8 @@ A numerical classifier chooses BUY / SELL / HOLD; a separate fitted regressor pr
 
 TimesFM remains frozen in this experiment. The trained decision layer consumes its numerical forecasts rather than its heuristic BUY/SELL policy. Forecast evidence and strategy signals remain separately visible in each decision, so forecasts are never represented as observed candles or calibrated action probabilities.
 
+See the [application architecture](architecture.md) for the surrounding consensus, risk, persistence and deployment layers.
+
 ## Run
 
 ```bash
@@ -65,4 +67,4 @@ The initial CPU experiment samples one decision every 48 candles from the existi
 
 All hybrid decisions remain `research_only`, even if measured retrospective gates pass. TimesFM 3.0's non-commercial/non-production restrictions apply to its outputs and this research pipeline. Its weights are separately downloaded, never bundled with signed releases. Fine-tuning or using an LLM to interpret forecasts does not remove those restrictions.
 
-Next, use new prospective periods with predeclared settings and denser sampling, compare Kronos/Chronos-2 under the same protocol, and only then consider forecaster fine-tuning. Reviewed LLM strategy explanations and matured feedback can be added later; they are not ground truth or fitted history features in this first combined numerical model. OpenAI/Laya/OpenJev integrations are not added by this change; existing independent language/typed backends remain available.
+Next, use new prospective periods with predeclared settings and denser sampling, compare Kronos/Chronos-2 under the same protocol, and only then consider forecaster fine-tuning. Reviewed LLM strategy explanations and matured feedback can be added later; they are not ground truth or fitted history features in this first combined numerical model. The [default orchestrator](orchestration.md) now connects the numerical anchor to language/typed reviewers, including [Ollaya](ollaya.md). These reviews are not fitted numerical history features or established evidence of improved returns.
