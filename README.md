@@ -24,6 +24,17 @@ Open **http://127.0.0.1:8000/** for the paper-trading dashboard, or `/docs` for 
 
 `decide` uses the shipped historical August 2026 snapshot; it does not fetch live prices. The default `decision` backend runs without model downloads or API keys. It is trained for BTCUSDT/ETHUSDT/SOLUSDT, 1h candles, a 3-candle horizon. Other assets or contracts require retraining.
 
+## TimesFM 3.0 forecasts
+
+Optional pretrained research forecasting with OHLC channels, past-only volume/indicators, and horizon quantile ranges:
+
+```bash
+pip install -e '.[timesfm]'
+trade-harness decide --backend timesfm
+```
+
+Weights download separately on first inference. This backend remains research-only and does not establish a profitable edge. See [setup, input mapping, decision policy, and license limits](docs/timesfm.md).
+
 ## Live paper trading
 
 ```bash

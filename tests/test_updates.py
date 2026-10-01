@@ -375,3 +375,21 @@ def test_incomplete_state_is_rejected(tmp_path, state):
     (tmp_path / "state.json").write_text(json.dumps(state))
     with pytest.raises(UpdateError, match="corrupt"):
         Updater(tmp_path, current_version="0.4.0").state()
+
+
+def test_timesfm_updates_select_optional_dependencies(tmp_path, monkeypatch):
+    monkeypatch.delenv("TRADING_UPDATE_EXTRAS", raising=False)
+    monkeypatch.setenv("TRADING_BACKEND", "timesfm")
+    create = []
+    commands = []
+    monkeypatch.setattr(updater.venv.EnvBuilder, "create", lambda self, path: create.append(path))
+
+    def run(command, **kwargs):
+        commands.append(command)
+        return SimpleNamespace(returncode=0)
+
+    monkeypatch.setattr(updater.subprocess, "run", run)
+    wheel = tmp_path / "package.whl"
+    updater.install_wheel(wheel, tmp_path / "environment", "0.4.2")
+    assert create == [tmp_path / "environment"]
+    assert commands[0][-1] == str(wheel) + "[timesfm]"

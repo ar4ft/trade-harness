@@ -129,6 +129,10 @@ def load_model():
                 "TRADING_DECISION_MODEL", str(Path(__file__).parent / "assets/decision_model.json")
             )
         )
+    if backend == "timesfm":
+        from .timesfm_model import TimesFMModel
+
+        return TimesFMModel()
     if backend == "nimble":
         from .nimble import NimbleModel
 

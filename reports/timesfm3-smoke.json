@@ -1,0 +1,29 @@
+{
+  "checkpoint": "google/timesfm-3.0-pytorch",
+  "context_candles": 100,
+  "elapsed_seconds": 32.55872463500418,
+  "decision": {
+    "action": "HOLD",
+    "confidence": 0.65,
+    "rationale": "Research forecast: median close return -0.06%; 10th\u201390th quantile return range [-0.76%, 0.61%]. Direction requires the entire range to exceed \u00b10.30%. Confidence is a policy heuristic; quantiles are not market-calibrated. Previous decisions are not inputs to this forecasting backend.",
+    "forecast": {
+      "horizon": 3,
+      "expected_return": -0.0006153182265141721,
+      "projected_close": 78532.9375,
+      "method": "timesfm-3.0-research-v1"
+    },
+    "probabilities": null,
+    "probability_calibration": "uncalibrated",
+    "validation_status": "research_only",
+    "model_version": "timesfm3-43046b85ec22d584a13f8098c2ed39c889e129c2-ctx512-interval-policy-v1",
+    "forecast_interval": [
+      -0.007640089962890562,
+      0.00612421942296959
+    ],
+    "trading_validation": null
+  },
+  "verification": "actual pretrained CPU inference, historical snapshot; not trading validation",
+  "cli_verified": true,
+  "api_verified": true,
+  "api_action": "HOLD"
+}

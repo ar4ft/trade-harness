@@ -52,7 +52,7 @@ def main():
     parser.add_argument("--position", choices=["flat", "long"])
     parser.add_argument(
         "--backend",
-        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile"],
+        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile", "timesfm"],
     )
     parser.add_argument("--data-dir", default="data/markets")
     parser.add_argument("--run-id", default="paper-BTCUSDT-1h")

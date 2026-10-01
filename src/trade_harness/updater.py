@@ -152,8 +152,10 @@ def install_wheel(wheel, directory, version):
     extras = os.environ.get("TRADING_UPDATE_EXTRAS", "").strip()
     if not extras and os.environ.get("TRADING_BACKEND") == "local-llm":
         extras = "llm-train"
-    if extras not in ("", "llm-train"):
-        raise UpdateError("Only the llm-train optional dependency set is supported for updates")
+    if not extras and os.environ.get("TRADING_BACKEND") == "timesfm":
+        extras = "timesfm"
+    if extras not in ("", "llm-train", "timesfm"):
+        raise UpdateError("Only llm-train and timesfm optional dependency sets are supported for updates")
     requirement = str(wheel) + (f"[{extras}]" if extras else "")
     venv.EnvBuilder(with_pip=True).create(directory)
     python = environment_python(directory)
