@@ -60,8 +60,8 @@ def test_features_are_causal_and_cost_labels():
     assert np.all(data.observed_at > data.timestamp)
 
 
-def test_default_model_is_new_calibrated_model(monkeypatch):
-    monkeypatch.delenv("TRADING_BACKEND", raising=False)
+def test_explicit_decision_model_is_calibrated(monkeypatch):
+    monkeypatch.setenv("TRADING_BACKEND", "decision")
     from trade_harness.models import load_model
 
     model = load_model()

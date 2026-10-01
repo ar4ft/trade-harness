@@ -261,3 +261,17 @@ def test_reviewed_export_includes_evidence_without_future_outcomes(market, tmp_p
     assert "realized_return" not in row["messages"][1]["content"]
     assert "consensus" not in user["shared_evidence"]
     assert json.loads(row["messages"][2]["content"])["action"] == "SELL"
+
+
+def test_default_backend_selects_orchestrator_and_respects_override(monkeypatch):
+    from trade_harness import models, orchestrator
+    from trade_harness.learning import DecisionModel
+
+    sentinel = object()
+    monkeypatch.delenv("TRADING_BACKEND", raising=False)
+    monkeypatch.setattr(orchestrator, "Orchestrator", lambda: sentinel)
+    assert models.load_model() is sentinel
+    assert isinstance(models.load_model("decision"), DecisionModel)
+    monkeypatch.setenv("TRADING_BACKEND", "decision")
+    assert isinstance(models.load_model(), DecisionModel)
+    assert models.load_model("orchestrator") is sentinel

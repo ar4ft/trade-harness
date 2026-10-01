@@ -1,6 +1,6 @@
 # TimesFM 3.0 research backend
 
-TimesFM is a numerical time-series forecasting model, not a language model. The optional `timesfm` backend uses Google's pretrained 3.0 checkpoint to produce a BUY / SELL / HOLD proposal and a horizon close-price forecast. It is available through the existing CLI, HTTP API, and paper monitor. The default numerical decision model remains unchanged.
+TimesFM is a numerical time-series forecasting model, not a language model. The optional `timesfm` backend uses Google's pretrained 3.0 checkpoint to produce a BUY / SELL / HOLD proposal and a horizon close-price forecast. It is available through the existing CLI, HTTP API, and paper monitor. The default orchestrator uses TimesFM evidence through the hybrid numerical model and adds language review.
 
 ## Run
 

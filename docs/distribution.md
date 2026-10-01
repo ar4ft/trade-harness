@@ -1,6 +1,6 @@
 # Distribute the harness and local language model
 
-The recommended package has two components: the Python harness wheel (numerical weights, dashboard, risk/paper engine, tokenizer/adapter metadata) and a Mozilla llamafile containing merged language weights plus the local inference server. Llamafile does not package the Python application or train the model. The default numerical backend already works without llamafile.
+The recommended package has two components: the Python harness wheel (numerical weights, dashboard, risk/paper engine, tokenizer/adapter metadata) and a Mozilla llamafile containing merged language weights plus the local inference server. Llamafile does not package the Python application or train the model. The default orchestrator uses the Python local reviewer and works without llamafile; install the `orchestrator` dependency group.
 
 ## Build from the shipped adapter
 

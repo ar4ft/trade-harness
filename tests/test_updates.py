@@ -377,10 +377,13 @@ def test_incomplete_state_is_rejected(tmp_path, state):
         Updater(tmp_path, current_version="0.4.0").state()
 
 
-@pytest.mark.parametrize("backend,extra", [("timesfm", "timesfm"), ("hybrid", "timesfm"), ("orchestrator", "orchestrator")])
+@pytest.mark.parametrize("backend,extra", [("timesfm", "timesfm"), ("hybrid", "timesfm"), ("orchestrator", "orchestrator"), (None, "orchestrator")])
 def test_forecast_updates_select_optional_dependencies(tmp_path, monkeypatch, backend, extra):
     monkeypatch.delenv("TRADING_UPDATE_EXTRAS", raising=False)
-    monkeypatch.setenv("TRADING_BACKEND", backend)
+    if backend is None:
+        monkeypatch.delenv("TRADING_BACKEND", raising=False)
+    else:
+        monkeypatch.setenv("TRADING_BACKEND", backend)
     create = []
     commands = []
     monkeypatch.setattr(updater.venv.EnvBuilder, "create", lambda self, path: create.append(path))

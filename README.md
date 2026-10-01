@@ -1,6 +1,6 @@
 # Trade Harness
 
-A decision-only CLI, HTTP API, and browser dashboard for trading research. Pass closed OHLC candles, volume, aligned indicators, symbol, timeframe, and decision history. Receive BUY / SELL / HOLD probabilities, a return forecast, projected price, and a separate risk-controlled execution decision.
+A decision-only CLI, HTTP API, and browser dashboard for trading research. Pass closed OHLC candles, volume, aligned indicators, symbol, timeframe, and decision history. Receive BUY / SELL / HOLD proposals, individual model scores, a return forecast, projected price, and a separate risk-controlled execution decision.
 
 Includes **70,128 real hourly candles across BTCUSDT, ETHUSDT, and SOLUSDT**, trained numerical model weights, and a custom SmolLM2 language-model LoRA adapter. Jev/TypeSafe-style typed fields expose direction, execution, risk level, regime, and rule results with their sources.
 
@@ -15,18 +15,18 @@ git clone https://github.com/ar4ft/trade-harness.git
 cd trade-harness
 python -m venv .venv
 source .venv/bin/activate
-pip install -e '.[dev]'
+pip install -e '.[dev,orchestrator]'
 trade-harness decide
 uvicorn trade_harness.api:app --host 127.0.0.1 --port 8000
 ```
 
 Open **http://127.0.0.1:8000/** for the paper-trading dashboard, or `/docs` for API documentation. The dashboard shows account equity, exposure, model probabilities, risk reasons, and simulated fills. It is a browser interface, not a native desktop application.
 
-`decide` uses the shipped historical August 2026 snapshot; it does not fetch live prices. The default `decision` backend runs without model downloads or API keys. It is trained for BTCUSDT/ETHUSDT/SOLUSDT, 1h candles, a 3-candle horizon. Other assets or contracts require retraining.
+`decide` uses the shipped historical August 2026 snapshot; it does not fetch live prices. The default `orchestrator` backend connects TimesFM forecasts, the hybrid numerical model, and the local LoRA reviewer. Base weights download on first use; no API key is required. The shipped reviewer supports BTCUSDT, 1h candles, a 3-candle horizon. Other contracts require a suitable reviewer. For lightweight numerical inference without model downloads, use `trade-harness decide --backend decision`.
 
 ## Shared-evidence consensus and parameter experiments
 
-The optional orchestrator connects the hybrid numerical model to language reviewers, sharing forecast, strategy, and engineered feature evidence. Disagreement or reviewer failure produces HOLD, with each vote visible in the API and dashboard.
+The default orchestrator connects the hybrid numerical model to language reviewers, sharing forecast, strategy, and engineered feature evidence. Disagreement or reviewer failure produces HOLD, with each vote visible in the API and dashboard.
 
 ```bash
 pip install -e '.[orchestrator]'
@@ -47,7 +47,7 @@ trade-harness validate --backend hybrid
 trade-harness train-hybrid --data-dir data/markets
 ```
 
-See [architecture, strategies, training, and comparison limits](docs/hybrid-decisions.md). The initial comparison averaged **−0.165%** validation account return for the combined model, with ten closed trades; it did not improve the baseline. See the [measured comparison](reports/hybrid-comparison.md). The combined model remains research-only and does not replace the default backend.
+See [architecture, strategies, training, and comparison limits](docs/hybrid-decisions.md). The initial comparison averaged **−0.165%** validation account return for the combined model, with ten closed trades; it did not improve the baseline. See the [measured comparison](reports/hybrid-comparison.md). The combined model remains research-only and serves as the numerical anchor inside the default orchestrator.
 
 ## TimesFM 3.0 forecasts
 

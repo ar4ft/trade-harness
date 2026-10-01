@@ -1,6 +1,6 @@
 # Shared evidence and consensus experiments
 
-The `orchestrator` backend connects the trained hybrid numerical model with one to three language reviewers. TimesFM provides forecast evidence; causal strategy and market features feed the numerical model; each language reviewer receives the same timestamped evidence independently. The orchestrator then applies a fixed confirmation policy, followed by the existing deterministic risk checks.
+The default `orchestrator` backend connects the trained hybrid numerical model with one to three language reviewers. TimesFM provides forecast evidence; causal strategy and market features feed the numerical model; each language reviewer receives the same timestamped evidence independently. The orchestrator then applies a fixed confirmation policy, followed by the existing deterministic risk checks.
 
 ## Run locally
 
@@ -10,7 +10,7 @@ trade-harness decide --backend orchestrator --reviewers local-llm
 TRADING_BACKEND=orchestrator trade-harness serve
 ```
 
-This loads the existing hybrid artifact and the shipped SmolLM2 LoRA adapter. Pretrained TimesFM and SmolLM2 base weights download separately on first use. Allow several GB of RAM. The default local reviewer is trained only for BTCUSDT/1h/3-candle inputs; other contracts fail closed until a suitable reviewer is configured or trained. The default numerical backend remains unchanged.
+This loads the existing hybrid artifact and the shipped SmolLM2 LoRA adapter. Pretrained TimesFM and SmolLM2 base weights download separately on first use. Allow several GB of RAM. The default local reviewer is trained only for BTCUSDT/1h/3-candle inputs; other contracts fail closed until a suitable reviewer is configured or trained. Use `--backend decision` to select the standalone numerical backend.
 
 The local adapter's original training prompt did not contain TimesFM forecasts and strategy evidence. The extended prompt is therefore experimental and recorded as `extended_prompt_untrained`. Receiving evidence does not mean the language model has been fine-tuned to use it well. Its direction scores remain uncalibrated.
 

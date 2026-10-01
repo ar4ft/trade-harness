@@ -76,8 +76,8 @@ def test_language_training_splits_and_future_exclusion(real_market):
     assert compact_prompt(prefix(market, 100), []) == compact_prompt(prefix(mutated, 100), [])
 
 
-def test_indicator_model_and_shipped_default(real_market, tmp_path, monkeypatch):
-    monkeypatch.delenv("TRADING_BACKEND", raising=False)
+def test_indicator_model_and_shipped_numerical(real_market, tmp_path, monkeypatch):
+    monkeypatch.setenv("TRADING_BACKEND", "decision")
     monkeypatch.delenv("TRADING_MODEL_PATH", raising=False)
     shipped = load_model()
     assert isinstance(shipped, DecisionModel)

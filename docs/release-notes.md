@@ -1,3 +1,7 @@
+# 0.6.1 (development)
+
+Makes shared-evidence orchestration the default CLI/API backend, with the hybrid numerical anchor and local LoRA reviewer. Managed updates install its dependency group when no backend override is configured. Explicit backend choices remain supported. Research-only validation, decision-only operation, and manual-only signing remain in place.
+
 # 0.6.0 (development)
 
 Adds a shared-evidence orchestrator connecting the hybrid numerical model to local, OpenAI-compatible, Nimble, or llamafile language review. Fixed confirmation policies abstain on disagreement, low supporting scores, or member failure, and expose vote audits in CLI/API/dashboard. Adds bounded causal feature recipes and chronological regularization experiments with a separately shipped research artifact. Reviewed fine-tuning exports preserve shared snapshot evidence without future returns in prompts. No language weights were retrained, no profitable edge was established, and signing remains manual-only. See [orchestration and experiments](orchestration.md).

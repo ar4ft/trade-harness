@@ -154,7 +154,7 @@ def install_wheel(wheel, directory, version):
         extras = "llm-train"
     if not extras and os.environ.get("TRADING_BACKEND") in ("timesfm", "hybrid"):
         extras = "timesfm"
-    if not extras and os.environ.get("TRADING_BACKEND") == "orchestrator":
+    if not extras and os.environ.get("TRADING_BACKEND", "orchestrator") == "orchestrator":
         extras = "orchestrator"
     if extras not in ("", "llm-train", "timesfm", "orchestrator"):
         raise UpdateError("Only llm-train, timesfm, and orchestrator dependency sets are supported for updates")

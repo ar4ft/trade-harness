@@ -128,7 +128,7 @@ class LanguageModel:
 
 
 def load_model(backend=None):
-    backend = backend or os.environ.get("TRADING_BACKEND", "decision")
+    backend = backend or os.environ.get("TRADING_BACKEND", "orchestrator")
     if backend == "orchestrator":
         from .orchestrator import Orchestrator
 
