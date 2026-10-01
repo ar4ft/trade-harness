@@ -61,6 +61,34 @@ class Forecast(StrictModel):
     method: str
 
 
+class StrategySignal(StrictModel):
+    name: str
+    action: Literal["BUY", "SELL", "HOLD"]
+    strength: float = Field(ge=0, le=1)
+    expected_return: float = Field(gt=-1, le=10)
+    invalidation_price: float = Field(gt=0)
+    holding_horizon: int = Field(ge=1, le=100)
+    reason: str
+
+
+class ForecastEvidence(StrictModel):
+    source: str
+    model_version: str
+    as_of: int = Field(ge=0)
+    horizon: int = Field(ge=1, le=100)
+    expected_return: float = Field(gt=-1, le=10)
+    return_interval: list[float]
+    uncertainty_calibrated: Literal[False] = False
+
+    @model_validator(mode="after")
+    def ordered_interval(self):
+        if len(self.return_interval) != 2 or not (
+            self.return_interval[0] <= self.expected_return <= self.return_interval[1]
+        ):
+            raise ValueError("Forecast evidence must contain an ordered interval around its point")
+        return self
+
+
 class Proposal(StrictModel):
     action: Literal["BUY", "SELL", "HOLD"]
     confidence: float = Field(ge=0, le=1)
@@ -72,6 +100,8 @@ class Proposal(StrictModel):
     model_version: str | None = None
     forecast_interval: list[float] | None = None
     trading_validation: TradingValidation | None = None
+    strategy_signals: list[StrategySignal] = Field(default_factory=list, max_length=10)
+    forecast_evidence: ForecastEvidence | None = None
 
     @model_validator(mode="after")
     def validate_optional_distribution(self):

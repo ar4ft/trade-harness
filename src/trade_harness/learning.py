@@ -243,7 +243,10 @@ def expected_return(artifact, x):
     return float(reg["baseline"] + sum(_tree_value(stage[0], x) for stage in reg["trees"]))
 
 
-def fit(train: Dataset, calibration: Dataset, kind="boosted") -> dict:
+def fit(train: Dataset, calibration: Dataset, kind="boosted", feature_names=None) -> dict:
+    feature_names = MODEL_FEATURES if feature_names is None else feature_names
+    if train.x.shape[1] != len(feature_names) or calibration.x.shape[1] != len(feature_names):
+        raise ValueError("Training feature contract mismatch")
     if set(train.y.tolist()) != {0, 1, 2} or len(calibration.y) < 30:
         raise ValueError("Need all three training classes and >=30 calibration examples")
     with threadpool_limits(limits=4):
@@ -312,7 +315,7 @@ def fit(train: Dataset, calibration: Dataset, kind="boosted") -> dict:
         {
             "version": 1,
             "kind": kind,
-            "features": MODEL_FEATURES,
+            "features": feature_names,
             "actions": ACTIONS,
             "symbols": sorted(set(train.symbol.tolist())),
             "horizon": train.horizon,
@@ -348,10 +351,14 @@ def fit(train: Dataset, calibration: Dataset, kind="boosted") -> dict:
 class DecisionModel:
     uses_history = False
     name = "calibrated-market-decisions-v1"
+    feature_names = MODEL_FEATURES
+
+    def feature_vector(self, market):
+        return model_features(market)
 
     def __init__(self, path=None, artifact=None):
         self.artifact = artifact or json.loads(Path(path).read_text())
-        if self.artifact["features"] != MODEL_FEATURES or self.artifact["actions"] != ACTIONS:
+        if self.artifact["features"] != self.feature_names or self.artifact["actions"] != ACTIONS:
             raise ValueError("Unsupported decision model feature/action contract")
         self.trained_until = self.artifact["trained_until"]
         self.version = self.artifact.get("model_version", "development")
@@ -376,7 +383,7 @@ class DecisionModel:
             raise ValueError("Input differs from trained asset/timeframe/horizon contract")
         if market.timestamps[-1] <= self.trained_until:
             raise ValueError("Input timestamp overlaps model fit or probability calibration")
-        x = model_features(market)
+        x = self.feature_vector(market)
         probability = softmax(raw_logits(a, x) / a["temperature"])
         action = ACTIONS[int(probability.argmax())]
         expected = float(np.clip(expected_return(a, x), -0.95, 1))

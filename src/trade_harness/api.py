@@ -15,7 +15,7 @@ from .risk import Quote, RiskConfig
 from .schemas import Decision, Feedback, MarketInput, StrictModel
 from .storage import Store
 
-app = FastAPI(title="Trade Harness", version="0.4.2")
+app = FastAPI(title="Trade Harness", version="0.5.0")
 
 
 @lru_cache

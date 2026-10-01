@@ -16,10 +16,14 @@ class TimesFMModel:
     name = "timesfm-3.0-research-v1"
     uses_history = False
 
-    def __init__(self):
-        self.context_length = int(os.environ.get("TRADING_TIMESFM_CONTEXT", "512"))
+    def __init__(self, context_length=None):
+        self.context_length = int(
+            context_length if context_length is not None
+            else os.environ.get("TRADING_TIMESFM_CONTEXT", "512")
+        )
         if not 21 <= self.context_length <= 10000:
             raise ValueError("TRADING_TIMESFM_CONTEXT must be between 21 and 10000")
+        self.batch_size = 1
         self.device = os.environ.get("TRADING_TIMESFM_DEVICE", "cpu")
         self.version = f"timesfm3-{REVISION}-ctx{self.context_length}-interval-policy-v1"
         self._forecaster = None
@@ -36,13 +40,13 @@ class TimesFMModel:
                     checkpoint_path=CHECKPOINT,
                     revision=REVISION,
                     device=self.device,
-                    per_core_batch_size=1,
+                    per_core_batch_size=self.batch_size,
                     local_files_only=os.environ.get("TRADING_TIMESFM_OFFLINE") == "1",
                 )
             )
         return self._forecaster
 
-    def predict(self, market, history):
+    def _inputs(self, market):
         interval = timeframe_ms(market.timeframe)
         if any(b - a != interval for a, b in zip(market.timestamps, market.timestamps[1:])):
             raise ValueError("TimesFM requires regularly spaced closed candles")
@@ -59,16 +63,42 @@ class TimesFMModel:
         past = np.stack(covariates)
         if not np.isfinite(prices).all() or not np.isfinite(past).all():
             raise ValueError("TimesFM inputs exceed float32 range")
-        # A shared API model serializes initialization and inference to bound memory use.
+        return prices, past
+
+    def predict(self, market, history):
+        prices, past = self._inputs(market)
         with self._lock:
             output = self._load().predict(
-                prices,
-                horizon=market.horizon,
-                past_only_covariates=past,
-                return_quantiles=True,
-                use_znorm=True,
-                sort_quantiles=True,
+                prices, horizon=market.horizon, past_only_covariates=past,
+                return_quantiles=True, use_znorm=True, sort_quantiles=True,
             )
+        return self._proposal(market, output)
+
+    def predict_many(self, markets):
+        if not markets:
+            return []
+        if len({m.horizon for m in markets}) != 1:
+            raise ValueError("A forecast batch must share its horizon")
+        inputs = [self._inputs(m) for m in markets]
+        # Indicator warm-up gaps can change covariate channel counts. Batch compatible shapes.
+        groups = {}
+        for index, (prices, past) in enumerate(inputs):
+            groups.setdefault((prices.shape, past.shape), []).append(index)
+        outputs = [None] * len(markets)
+        with self._lock:
+            for indices in groups.values():
+                batch = list(self._load().predict_batch(
+                    contexts=[inputs[i][0] for i in indices], horizon=markets[0].horizon,
+                    past_only_covariates=[inputs[i][1] for i in indices],
+                    return_quantiles=True, use_znorm=True, sort_quantiles=True,
+                ))
+                if len(batch) != len(indices):
+                    raise ValueError("TimesFM batch output count mismatch")
+                for i, output in zip(indices, batch):
+                    outputs[i] = output
+        return [self._proposal(m, o) for m, o in zip(markets, outputs)]
+
+    def _proposal(self, market, output):
         point = np.asarray(output.forecast, dtype=float)
         quantiles = np.asarray(output.quantiles, dtype=float)
         if point.shape != (4, market.horizon) or quantiles.shape != (4, market.horizon, 9):

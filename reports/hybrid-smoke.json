@@ -1,0 +1,73 @@
+{
+  "verification": "actual frozen TimesFM CPU forecasts feeding the shipped trained decision artifact",
+  "cli_verified": true,
+  "api_verified": true,
+  "seconds": 3.9791449699987425,
+  "model_version": "fce8e0a60b433450",
+  "action": "HOLD",
+  "proposed_action": "HOLD",
+  "guardrails": [
+    "low_confidence"
+  ],
+  "decision_forecast": {
+    "horizon": 3,
+    "expected_return": -0.0003829196130929679,
+    "projected_close": 78551.19968283684,
+    "method": "trained return regression"
+  },
+  "timesfm_forecast": {
+    "source": "timesfm-3.0-research-v1",
+    "model_version": "timesfm3-43046b85ec22d584a13f8098c2ed39c889e129c2-ctx100-interval-policy-v1",
+    "as_of": 1788220799999,
+    "horizon": 3,
+    "expected_return": -0.0006153182265141721,
+    "return_interval": [
+      -0.007640089962890562,
+      0.00612421942296959
+    ],
+    "uncertainty_calibrated": false
+  },
+  "strategies": [
+    {
+      "name": "trend",
+      "action": "BUY",
+      "strength": 0.3534871781483521,
+      "expected_return": 0.0015906923016675845,
+      "invalidation_price": 77678.64876537179,
+      "holding_horizon": 3,
+      "reason": "20-candle momentum beyond \u00b11%; exit hypothesis at two ATR."
+    },
+    {
+      "name": "breakout",
+      "action": "HOLD",
+      "strength": 0.0,
+      "expected_return": 0.0,
+      "invalidation_price": 78581.29,
+      "holding_horizon": 3,
+      "reason": "Close exceeds prior 20-candle high/low, excluding current candle."
+    },
+    {
+      "name": "mean_reversion",
+      "action": "HOLD",
+      "strength": 0.0,
+      "expected_return": 0.0,
+      "invalidation_price": 78581.29,
+      "holding_horizon": 3,
+      "reason": "Deviation beyond \u00b11.5 standard deviations with confirming RSI."
+    },
+    {
+      "name": "no_trade",
+      "action": "HOLD",
+      "strength": 0.0,
+      "expected_return": 0.0,
+      "invalidation_price": 78581.29,
+      "holding_horizon": 3,
+      "reason": "Abstain when directional hypotheses conflict, none activate, or volatility exceeds 4%."
+    }
+  ],
+  "real_execution_enabled": false,
+  "validation_status": "research_only",
+  "dashboard_desktop_verified": true,
+  "dashboard_mobile_verified": true,
+  "dashboard_javascript_errors": []
+}

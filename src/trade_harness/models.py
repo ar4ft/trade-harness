@@ -129,6 +129,16 @@ def load_model():
                 "TRADING_DECISION_MODEL", str(Path(__file__).parent / "assets/decision_model.json")
             )
         )
+    if backend == "hybrid":
+        from .hybrid import HybridModel
+
+        return HybridModel(os.environ.get(
+            "TRADING_HYBRID_MODEL", str(Path(__file__).parent / "assets/hybrid_model.json")
+        ))
+    if backend == "strategy":
+        from .strategies import StrategyModel
+
+        return StrategyModel()
     if backend == "timesfm":
         from .timesfm_model import TimesFMModel
 

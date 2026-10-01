@@ -29,6 +29,7 @@ def main():
             "train-language",
             "export-finetuning",
             "evaluate",
+            "train-hybrid",
             "paper",
             "paper-replay",
             "status",
@@ -52,9 +53,13 @@ def main():
     parser.add_argument("--position", choices=["flat", "long"])
     parser.add_argument(
         "--backend",
-        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile", "timesfm"],
+        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile", "timesfm", "hybrid", "strategy"],
     )
     parser.add_argument("--data-dir", default="data/markets")
+    parser.add_argument("--forecast-cache", default="artifacts/hybrid/forecasts.jsonl")
+    parser.add_argument("--forecast-stride", type=int, default=48)
+    parser.add_argument("--forecast-context", type=int, default=100)
+    parser.add_argument("--model-output")
     parser.add_argument("--run-id", default="paper-BTCUSDT-1h")
     parser.add_argument(
         "--steps",
@@ -107,11 +112,28 @@ def main():
         from .learning import DecisionModel
         from .validation import validation_report
 
-        model = DecisionModel(args.input) if args.input else load_model()
+        if args.input and args.backend == "hybrid":
+            from .hybrid import HybridModel
+
+            model = HybridModel(args.input)
+        else:
+            model = DecisionModel(args.input) if args.input else load_model()
         result = validation_report(model)
         if args.output:
             Path(args.output).write_text(json.dumps(result, indent=2))
         print(json.dumps(result, indent=2))
+        return
+    if args.command == "train-hybrid":
+        from .hybrid_training import evaluate_hybrid
+
+        paths = [str(p) for p in Path(args.data_dir).glob("*.json")
+                 if not p.name.endswith(".provenance.json")]
+        evaluate_hybrid(
+            paths, cache=args.forecast_cache, stride=args.forecast_stride,
+            context=args.forecast_context, folds=args.folds,
+            output=args.output or "reports/hybrid-comparison.json",
+            model_output=args.model_output or str(Path(__file__).parent / "assets/hybrid_model.json"),
+        )
         return
     if args.command == "evaluate":
         from .evaluation import evaluate

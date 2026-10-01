@@ -24,6 +24,19 @@ Open **http://127.0.0.1:8000/** for the paper-trading dashboard, or `/docs` for 
 
 `decide` uses the shipped historical August 2026 snapshot; it does not fetch live prices. The default `decision` backend runs without model downloads or API keys. It is trained for BTCUSDT/ETHUSDT/SOLUSDT, 1h candles, a 3-candle horizon. Other assets or contracts require retraining.
 
+## Combined forecast and strategy decisions
+
+The optional `hybrid` backend feeds TimesFM forecast returns and uncertainty, observed market features, and trend/breakout/mean-reversion hypotheses into a trained numerical decision model. Each response exposes forecast evidence and strategy signals separately.
+
+```bash
+pip install -e '.[timesfm]'
+trade-harness decide --backend hybrid
+trade-harness validate --backend hybrid
+trade-harness train-hybrid --data-dir data/markets
+```
+
+See [architecture, strategies, training, and comparison limits](docs/hybrid-decisions.md). The initial comparison averaged **−0.165%** validation account return for the combined model, with ten closed trades; it did not improve the baseline. See the [measured comparison](reports/hybrid-comparison.md). The combined model remains research-only and does not replace the default backend.
+
 ## TimesFM 3.0 forecasts
 
 Optional pretrained research forecasting with OHLC channels, past-only volume/indicators, and horizon quantile ranges:

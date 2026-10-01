@@ -98,7 +98,7 @@ def calibration_metrics(probability, y):
     }
 
 
-def _simulate(series, model, start, end, config):
+def _simulate(series, model, start, end, config, decision_times=None):
     reports = {}
     for symbol, market in series.items():
         store = Store(":memory:")
@@ -112,11 +112,26 @@ def _simulate(series, model, start, end, config):
         )
         indices = [i for i, t in enumerate(market.timestamps) if start <= t < end and i >= 20]
         for i in indices:
+            if decision_times is not None and i not in (indices[0], indices[-1]):
+                account = engine.account
+                if (symbol, market.timestamps[i]) not in decision_times and not (
+                    account.units or account.pending
+                ):
+                    continue  # Flat cash cannot change; active positions process every bar.
             engine.replay(window(market, i), market.ohlc[i])
         summary = engine.summary()
         curve = summary.pop("equity_curve")
         days = {int(t) // 86400000: value for t, value in curve}
-        values = np.array(list(days.values()))
+        if decision_times is not None and days:
+            # Restore unchanged cash days when idle bars were skipped.
+            last_value = next(iter(days.values()))
+            complete = []
+            for day in range(min(days), max(days) + 1):
+                last_value = days.get(day, last_value)
+                complete.append(last_value)
+            values = np.array(complete)
+        else:
+            values = np.array(list(days.values()))
         daily = np.diff(values) / values[:-1] if len(values) > 1 else np.array([])
         summary["annualized_daily_sharpe"] = (
             float(np.mean(daily) / np.std(daily) * np.sqrt(365))
