@@ -49,6 +49,19 @@ trade-harness train-hybrid --data-dir data/markets
 
 See [architecture, strategies, training, and comparison limits](docs/hybrid-decisions.md). The initial comparison averaged **−0.165%** validation account return for the combined model, with ten closed trades; it did not improve the baseline. See the [measured comparison](reports/hybrid-comparison.md). The combined model remains research-only and serves as the numerical anchor inside the default orchestrator.
 
+## Ollaya typed review
+
+Use a separately installed [Ollaya](https://github.com/ollaya-dev/ollaya) daemon as a decision layer before consensus:
+
+```bash
+ollaya pull decision
+trade-harness decide --reviewers ollaya
+# Or use both reviewers:
+trade-harness decide --reviewers local-llm,ollaya
+```
+
+Run `ollaya serve` separately first. The adapter preserves shared evidence, records the manifest digest, and rejects truncated input. The default Ollaya model is `decision:latest`; this remains an unvalidated trading reviewer. See [setup and score semantics](docs/ollaya.md).
+
 ## TimesFM 3.0 forecasts
 
 Optional pretrained research forecasting with OHLC channels, past-only volume/indicators, and horizon quantile ranges:

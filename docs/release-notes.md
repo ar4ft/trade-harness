@@ -1,3 +1,7 @@
+# 0.7.0 (development)
+
+Adds Ollaya native typed decision review as an optional layer before consensus or a standalone research backend. Records model manifest provenance, validates probability rounding and rejects truncation/routing changes. TimesFM, numerical confirmation, risk and manual-only release signing remain owned by the harness. No trading edge or trading fine-tuning is claimed. See [Ollaya setup](ollaya.md).
+
 # 0.6.1 (development)
 
 Makes shared-evidence orchestration the default CLI/API backend, with the hybrid numerical anchor and local LoRA reviewer. Managed updates install its dependency group when no backend override is configured. Explicit backend choices remain supported. Research-only validation, decision-only operation, and manual-only signing remain in place.

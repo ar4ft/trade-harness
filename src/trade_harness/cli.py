@@ -54,7 +54,7 @@ def main():
     parser.add_argument("--position", choices=["flat", "long"])
     parser.add_argument(
         "--backend",
-        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile", "timesfm", "hybrid", "strategy", "orchestrator"],
+        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "ollaya", "llamafile", "timesfm", "hybrid", "strategy", "orchestrator"],
     )
     parser.add_argument("--data-dir", default="data/markets")
     parser.add_argument("--forecast-cache", default="artifacts/hybrid/forecasts.jsonl")

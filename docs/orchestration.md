@@ -1,6 +1,6 @@
 # Shared evidence and consensus experiments
 
-The default `orchestrator` backend connects the trained hybrid numerical model with one to three language reviewers. TimesFM provides forecast evidence; causal strategy and market features feed the numerical model; each language reviewer receives the same timestamped evidence independently. The orchestrator then applies a fixed confirmation policy, followed by the existing deterministic risk checks.
+The default `orchestrator` backend connects the trained hybrid numerical model with one to three language/typed decision reviewers. TimesFM provides forecast evidence; causal strategy and market features feed the numerical model; each language reviewer receives the same timestamped evidence independently. The orchestrator then applies a fixed confirmation policy, followed by the existing deterministic risk checks.
 
 ## Run locally
 
@@ -15,6 +15,8 @@ This loads the existing hybrid artifact and the shipped SmolLM2 LoRA adapter. Pr
 The local adapter's original training prompt did not contain TimesFM forecasts and strategy evidence. The extended prompt is therefore experimental and recorded as `extended_prompt_untrained`. Receiving evidence does not mean the language model has been fine-tuned to use it well. Its direction scores remain uncalibrated.
 
 For the existing OpenAI-compatible reviewer, configure `LLM_MODEL`, `LLM_BASE_URL`, and `LLM_API_KEY`, then use `--reviewers llm`. This uses the existing Chat Completions JSON adapter, not a separately claimed OpenAI “Decisions API.” Other compatible providers can use this interface. No live paid-provider call was made during implementation; its shared-evidence contract is tested with mocked HTTP responses.
+
+[Ollaya](ollaya.md) can supply a local typed reviewer through `--reviewers ollaya` or `--reviewers local-llm,ollaya`. The harness retains the consensus and risk policy.
 
 The Nimble typed service accepts shared evidence through `--reviewers nimble`, using its existing configuration/credentials. Its review path uses the shared TimesFM forecast and omits numerical direction probabilities. A dedicated local server can review through `--reviewers llamafile`. Local LoRA and its llamafile runtime cannot both count as voters: they represent the same model family.
 

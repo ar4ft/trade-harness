@@ -99,6 +99,7 @@ class ModelVote(StrictModel):
     calibration: str = "uncalibrated"
     evidence_mode: str
     evidence_sha256: str
+    review_details: dict = Field(default_factory=dict)
 
 
 class ConsensusEvidence(StrictModel):
@@ -129,6 +130,7 @@ class Proposal(StrictModel):
     forecast_evidence: ForecastEvidence | None = None
     feature_evidence: dict[str, float] = Field(default_factory=dict)
     consensus: ConsensusEvidence | None = None
+    review_details: dict = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def validate_optional_distribution(self):

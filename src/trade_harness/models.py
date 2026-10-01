@@ -155,6 +155,10 @@ def load_model(backend=None):
         from .timesfm_model import TimesFMModel
 
         return TimesFMModel()
+    if backend == "ollaya":
+        from .ollaya import OllayaModel
+
+        return OllayaModel()
     if backend == "nimble":
         from .nimble import NimbleModel
 

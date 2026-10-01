@@ -15,7 +15,7 @@ from .schemas import ConsensusEvidence, ModelVote, Proposal, StrictModel
 
 
 class OrchestratorConfig(StrictModel):
-    reviewers: list[Literal["local-llm", "llamafile", "llm", "nimble"]] = Field(
+    reviewers: list[Literal["local-llm", "llamafile", "llm", "nimble", "ollaya"]] = Field(
         default_factory=lambda: ["local-llm"], min_length=1, max_length=3,
     )
     agreement_fraction: float = Field(default=1, gt=0.5, le=1)
@@ -97,6 +97,8 @@ class Orchestrator:
                 self.reviewers[backend] = reviewers[backend] if reviewers is not None else load_model(backend)
             except Exception:  # noqa: BLE001 - unavailable plugins are recorded without secrets
                 self.reviewers[backend] = None
+        if "nimble" in self.reviewers and getattr(self.reviewers.get("ollaya"), "model_family", None) == "nimble":
+            raise ValueError("Nimble and Nimble served through Ollaya cannot add separate votes")
         identity = {
             "policy": self.name, "config": self.config.model_dump(),
             "primary": getattr(self.primary, "version", self.primary.name),
@@ -124,7 +126,7 @@ class Orchestrator:
             return ModelVote(**{**base, "model_version": value.model_version or base["model_version"]}, status="ok",
                              action=value.action, confidence=value.confidence,
                              probabilities=value.probabilities,
-                             calibration=value.probability_calibration)
+                             calibration=value.probability_calibration, review_details=value.review_details)
         except ValueError:
             return ModelVote(**base, status="invalid")
         except Exception:  # noqa: BLE001 - credentials/provider errors must never reach clients
