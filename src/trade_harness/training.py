@@ -70,6 +70,18 @@ def export_finetuning(store, output: str):
                 "prior_decisions": [],
                 "output_schema": Proposal.model_json_schema(),
             }
+            if decision.get("consensus") and decision.get("forecast_evidence"):
+                import hashlib
+
+                from .orchestrator import shared_evidence
+                from .schemas import Decision
+
+                evidence = shared_evidence(MarketInput.model_validate(market),
+                                           Decision.model_validate(decision))
+                fingerprint = hashlib.sha256(json.dumps(evidence, sort_keys=True).encode()).hexdigest()
+                if any(v["evidence_sha256"] != fingerprint for v in decision["consensus"]["votes"]):
+                    raise ValueError("Reviewed shared evidence differs from its recorded snapshot")
+                user["shared_evidence"] = evidence
             file.write(
                 json.dumps(
                     {

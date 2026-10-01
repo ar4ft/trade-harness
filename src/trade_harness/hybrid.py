@@ -3,6 +3,7 @@
 import numpy as np
 
 from .data import ensure_indicators
+from .feature_engineering import FeatureConfig, feature_names, transform_features
 from .learning import MODEL_FEATURES, DecisionModel, model_features
 from .schemas import ForecastEvidence
 from .strategies import STRATEGY_FEATURES, STRATEGY_VERSION, strategy_features, strategy_signals
@@ -26,7 +27,14 @@ class HybridModel(DecisionModel):
     feature_names = HYBRID_FEATURES
 
     def __init__(self, path=None, artifact=None, forecaster=None):
-        super().__init__(path, artifact)
+        if artifact is None:
+            import json
+            from pathlib import Path
+
+            artifact = json.loads(Path(path).read_text())
+        self.feature_config = FeatureConfig.model_validate(artifact.get("feature_config", {}))
+        self.feature_names = feature_names(self.feature_config)
+        super().__init__(artifact=artifact)
         self.forecaster = forecaster or TimesFMModel(
             context_length=self.artifact["forecast_contract"]["context_length"]
         )
@@ -53,15 +61,18 @@ class HybridModel(DecisionModel):
         x = np.concatenate([
             model_features(market), strategy_features(signals), forecast_features(market, forecast),
         ])
+        x = transform_features(x, self.feature_config)
+        contract_names = self.feature_names
         # Reuse the portable decision predictor with a per-call feature vector, safe for concurrent API calls.
         class PreparedDecision(DecisionModel):
-            feature_names = HYBRID_FEATURES
+            feature_names = contract_names
 
             def feature_vector(self, market):
                 return x
 
         decision = PreparedDecision(artifact=self.artifact).predict(market, [])
         decision.validation_status = "research_only"  # TimesFM 3.0 remains a research pipeline.
+        decision.feature_evidence = {name: float(value) for name, value in zip(self.feature_names, x)}
         decision.strategy_signals = signals
         decision.forecast_evidence = ForecastEvidence(
             source=forecast.forecast.method, model_version=forecast.model_version,

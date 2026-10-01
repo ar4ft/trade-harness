@@ -30,6 +30,7 @@ def main():
             "export-finetuning",
             "evaluate",
             "train-hybrid",
+            "tune-hybrid",
             "paper",
             "paper-replay",
             "status",
@@ -53,13 +54,17 @@ def main():
     parser.add_argument("--position", choices=["flat", "long"])
     parser.add_argument(
         "--backend",
-        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile", "timesfm", "hybrid", "strategy"],
+        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "llamafile", "timesfm", "hybrid", "strategy", "orchestrator"],
     )
     parser.add_argument("--data-dir", default="data/markets")
     parser.add_argument("--forecast-cache", default="artifacts/hybrid/forecasts.jsonl")
     parser.add_argument("--forecast-stride", type=int, default=48)
     parser.add_argument("--forecast-context", type=int, default=100)
     parser.add_argument("--model-output")
+    parser.add_argument("--trial-plan", help="JSON list of bounded feature/parameter trials")
+    review_config = parser.add_mutually_exclusive_group()
+    review_config.add_argument("--reviewers", help="Comma-separated language review backends")
+    review_config.add_argument("--orchestrator-config", help="JSON consensus policy configuration")
     parser.add_argument("--run-id", default="paper-BTCUSDT-1h")
     parser.add_argument(
         "--steps",
@@ -92,6 +97,10 @@ def main():
             if args.command in ("paper", "paper-replay", "status")
             else os.environ.get("TRADING_DB", "decisions.sqlite")
         )
+    if args.reviewers:
+        os.environ["TRADING_ORCHESTRATOR_REVIEWERS"] = args.reviewers
+    if args.orchestrator_config:
+        os.environ["TRADING_ORCHESTRATOR_CONFIG"] = args.orchestrator_config
     if args.backend:
         os.environ["TRADING_BACKEND"] = args.backend
     if args.command == "update":
@@ -122,6 +131,19 @@ def main():
         if args.output:
             Path(args.output).write_text(json.dumps(result, indent=2))
         print(json.dumps(result, indent=2))
+        return
+    if args.command == "tune-hybrid":
+        from .experiments import tune_hybrid
+
+        paths = [str(p) for p in Path(args.data_dir).glob("*.json")
+                 if not p.name.endswith(".provenance.json")]
+        tune_hybrid(
+            paths, cache=args.forecast_cache, stride=args.forecast_stride,
+            context=args.forecast_context, folds=args.folds,
+            output=args.output or "reports/parameter-experiments.json",
+            model_output=args.model_output or str(Path(__file__).parent / "assets/tuned_hybrid_model.json"),
+            trials=json.loads(Path(args.trial_plan).read_text()) if args.trial_plan else None,
+        )
         return
     if args.command == "train-hybrid":
         from .hybrid_training import evaluate_hybrid
@@ -245,6 +267,8 @@ def main():
                 .decide(market)
                 .model_dump()
             )
+    if args.output and args.command in ("decide", "paper", "paper-replay", "status", "backtest"):
+        Path(args.output).write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
 
 

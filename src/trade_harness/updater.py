@@ -154,8 +154,10 @@ def install_wheel(wheel, directory, version):
         extras = "llm-train"
     if not extras and os.environ.get("TRADING_BACKEND") in ("timesfm", "hybrid"):
         extras = "timesfm"
-    if extras not in ("", "llm-train", "timesfm"):
-        raise UpdateError("Only llm-train and timesfm optional dependency sets are supported for updates")
+    if not extras and os.environ.get("TRADING_BACKEND") == "orchestrator":
+        extras = "orchestrator"
+    if extras not in ("", "llm-train", "timesfm", "orchestrator"):
+        raise UpdateError("Only llm-train, timesfm, and orchestrator dependency sets are supported for updates")
     requirement = str(wheel) + (f"[{extras}]" if extras else "")
     venv.EnvBuilder(with_pip=True).create(directory)
     python = environment_python(directory)

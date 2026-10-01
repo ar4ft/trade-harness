@@ -243,7 +243,12 @@ def expected_return(artifact, x):
     return float(reg["baseline"] + sum(_tree_value(stage[0], x) for stage in reg["trees"]))
 
 
-def fit(train: Dataset, calibration: Dataset, kind="boosted", feature_names=None) -> dict:
+def fit(train: Dataset, calibration: Dataset, kind="boosted", feature_names=None, parameters=None) -> dict:
+    from .feature_engineering import FitParameters
+
+    params = FitParameters.model_validate(parameters or {})
+    if parameters is not None and kind != "logistic":
+        raise ValueError("Parameter experiments support the logistic/Ridge learner")
     feature_names = MODEL_FEATURES if feature_names is None else feature_names
     if train.x.shape[1] != len(feature_names) or calibration.x.shape[1] != len(feature_names):
         raise ValueError("Training feature contract mismatch")
@@ -252,10 +257,10 @@ def fit(train: Dataset, calibration: Dataset, kind="boosted", feature_names=None
     with threadpool_limits(limits=4):
         if kind == "logistic":
             scaler = StandardScaler().fit(train.x)
-            classifier = LogisticRegression(C=0.5, max_iter=500, random_state=42).fit(
+            classifier = LogisticRegression(C=params.logistic_c, max_iter=500, random_state=42).fit(
                 scaler.transform(train.x), train.y
             )
-            reg = Ridge(alpha=10).fit(scaler.transform(train.x), train.returns)
+            reg = Ridge(alpha=params.ridge_alpha).fit(scaler.transform(train.x), train.returns)
             logits = classifier.decision_function(scaler.transform(calibration.x))
             forecast = reg.predict(scaler.transform(calibration.x))
             state = {
@@ -339,6 +344,8 @@ def fit(train: Dataset, calibration: Dataset, kind="boosted", feature_names=None
             "target": "next-open to horizon-close market return; direction threshold equals roundtrip modeled costs",
         }
     )
+    if parameters is not None:
+        state["fit_parameters"] = params.model_dump()
     # Verify exported trees/coefficients reproduce sklearn exactly; no executable pickle artifacts.
     for i in np.linspace(0, len(calibration.x) - 1, min(12, len(calibration.x)), dtype=int):
         if not np.allclose(raw_logits(state, calibration.x[i]), logits[i], atol=1e-9):

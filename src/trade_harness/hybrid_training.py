@@ -9,6 +9,7 @@ import numpy as np
 from .data import ensure_indicators
 from .evaluation import CachedModel, _mean_return, calibration_metrics
 from .evaluation import _simulate as simulate_all
+from .feature_engineering import FeatureConfig, FitParameters, feature_names, transform_features
 from .hybrid import FORECAST_FEATURES, HYBRID_FEATURES, HybridModel, forecast_features
 from .learning import (
     MODEL_FEATURES,
@@ -164,7 +165,7 @@ def _simulate(series, model, start, end, config):
 def evaluate_hybrid(paths, cache="artifacts/hybrid/forecasts.jsonl", stride=48, context=100,
                     output="reports/hybrid-comparison.json",
                     model_output="src/trade_harness/assets/hybrid_model.json", folds=3,
-                    forecaster=None):
+                    forecaster=None, experiment_trials=None):
     if not 3 <= folds <= 6:
         raise ValueError("Use three to six walk-forward folds")
     from .risk import RiskConfig
@@ -182,10 +183,24 @@ def evaluate_hybrid(paths, cache="artifacts/hybrid/forecasts.jsonl", stride=48, 
         "forecast_only": (slice(strategy_end, None), FORECAST_FEATURES),
         "combined": (slice(None), HYBRID_FEATURES),
     }
+    plans = {}
+    if experiment_trials is not None:
+        if not 2 <= len(experiment_trials) <= 16:
+            raise ValueError("Use two to sixteen predeclared trials")
+        for trial in experiment_trials:
+            if set(trial) != {"name", "features", "parameters"}:
+                raise ValueError("Trial fields must be name, features, parameters")
+            name = trial["name"]
+            if not isinstance(name, str) or not name.isidentifier() or name in plans:
+                raise ValueError("Trial names must be unique identifiers")
+            plans[name] = {"features": FeatureConfig.model_validate(trial["features"]).model_dump(),
+                           "parameters": FitParameters.model_validate(trial["parameters"]).model_dump()}
+        definitions = {name: (slice(None), feature_names(plan["features"]))
+                       for name, plan in plans.items()}
     candidates = {}
     for name, (columns, names) in definitions.items():
         view = data.subset(np.ones(len(data.y), dtype=bool))
-        view.x = data.x[:, columns]
+        view.x = transform_features(data.x, plans[name]["features"]) if name in plans else data.x[:, columns]
         candidates[name] = (view, names)
     unique = np.unique(data.timestamp)
     development_end = int(len(unique) * 0.8)
@@ -218,6 +233,17 @@ def evaluate_hybrid(paths, cache="artifacts/hybrid/forecasts.jsonl", stride=48, 
             "Decision history and account state are not fitted features in this first combined model.",
         ],
     }
+    if plans:
+        report["trial_plan"] = plans
+        report["selection_rule"] = "Lowest mean purged validation log loss; final test compares only the locked winner and untuned base. No automatic activation or consensus-agreement objective."
+        report["limitations"].append("Multiple parameter trials increase selection bias; fresh confirmation is required.")
+        plan_path = Path(str(output) + ".plan.json")
+        plan_path.parent.mkdir(parents=True, exist_ok=True)
+        plan = {"trials": plans, "test_start": test_start, "forecast_contract": contract,
+                "selection_rule": report["selection_rule"]}
+        if plan_path.exists() and json.loads(plan_path.read_text()) != plan:
+            raise ValueError("Experiment plan changed; use a new output path")
+        plan_path.write_text(json.dumps(plan, sort_keys=True, indent=2) + "\n")
     for number, (left, right) in enumerate(zip(boundaries[:-1], boundaries[1:]), 1):
         start, end = int(unique[left]), int(unique[right])
         calibration_start = int(unique[int(left * 0.8)])
@@ -244,7 +270,8 @@ def evaluate_hybrid(paths, cache="artifacts/hybrid/forecasts.jsonl", stride=48, 
         for name, (candidate, names) in candidates.items():
             train, calibration, val = (candidate.subset(m) for m in (train_mask, cal_mask, val_mask))
             artifact = fit(train, calibration,
-                           "boosted" if name == "market_boosted_reference" else "logistic", names)
+                           "boosted" if name == "market_boosted_reference" else "logistic", names,
+                           parameters=plans[name]["parameters"] if name in plans else None)
             p, expected = predict_batch(artifact, val.x)
             model = CachedModel(artifact, val)
             normal = _simulate(series, model, start, end, config)
@@ -277,12 +304,23 @@ def evaluate_hybrid(paths, cache="artifacts/hybrid/forecasts.jsonl", stride=48, 
     cal_mask = (data.timestamp >= calibration_start) & (data.observed_at < test_start)
     test_mask = data.timestamp >= test_start
     final_artifacts = {}
+    final_names = set(candidates)
+    if plans:
+        final_names = {report["selected_candidate"]}
+        final_names.update(name for name, plan in plans.items()
+                           if plan["features"]["recipe"] == "base" and
+                           plan["parameters"] == FitParameters().model_dump())
     for name, (candidate, names) in candidates.items():
+        if name not in final_names:
+            continue
         training, calibration, test = (candidate.subset(m) for m in (train_mask, cal_mask, test_mask))
         artifact = fit(training, calibration,
-                       "boosted" if name == "market_boosted_reference" else "logistic", names)
+                       "boosted" if name == "market_boosted_reference" else "logistic", names,
+                           parameters=plans[name]["parameters"] if name in plans else None)
         artifact.update({"forecast_contract": contract, "strategy_version": STRATEGY_VERSION,
                          "validation_status": "research_only"})
+        if name in plans:
+            artifact["feature_config"] = plans[name]["features"]
         artifact["model_version"] = digest(artifact)[:16]
         for key in ("trading_validation", "validation_per_asset"):
             artifact[key] = report["candidates"][name][key]
@@ -303,7 +341,9 @@ def evaluate_hybrid(paths, cache="artifacts/hybrid/forecasts.jsonl", stride=48, 
                                                     int(unique[-1] + 1), config)
     report["final_test"]["forecast_rule"] = _simulate(series, forecast_rule, test_start,
                                                     int(unique[-1] + 1), config)
-    combined = final_artifacts["combined"]
+    output_candidate = report["selected_candidate"] if plans else "combined"
+    report["output_candidate"] = output_candidate
+    combined = final_artifacts[output_candidate]
     target = Path(model_output)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(combined, allow_nan=False, separators=(",", ":")))

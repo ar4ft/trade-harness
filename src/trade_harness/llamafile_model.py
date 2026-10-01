@@ -8,7 +8,7 @@ from pathlib import Path
 import httpx
 import numpy as np
 
-from .local_language import ACTIONS, COMPACT_SYSTEM, LocalLanguageModel
+from .local_language import ACTIONS, COMPACT_SYSTEM, LocalLanguageModel, adapter_version
 
 
 def chat_prompt(prompt):
@@ -42,6 +42,7 @@ class LlamafileModel(LocalLanguageModel):
         self.path = Path(path or Path(__file__).parent / "assets/trading_lora")
         self.metadata = json.loads((self.path / "trading_metadata.json").read_text())
         self.trained_until = self.metadata["trained_until"]
+        self.version = adapter_version(self.path, self.metadata)
         self.base_url = os.environ.get("LLAMAFILE_BASE_URL", "http://127.0.0.1:8080").rstrip("/")
         self.key = os.environ.get("LLAMAFILE_API_KEY", "")
 

@@ -89,6 +89,31 @@ class ForecastEvidence(StrictModel):
         return self
 
 
+class ModelVote(StrictModel):
+    member: str
+    model_version: str | None = None
+    status: Literal["ok", "unavailable", "invalid"]
+    action: Literal["BUY", "SELL", "HOLD"] | None = None
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    probabilities: dict[str, float] | None = None
+    calibration: str = "uncalibrated"
+    evidence_mode: str
+    evidence_sha256: str
+
+
+class ConsensusEvidence(StrictModel):
+    policy: str = "primary-confirmation-v1"
+    configured_members: int = Field(ge=2, le=4)
+    valid_members: int = Field(ge=0, le=4)
+    supporting_members: int = Field(ge=0, le=4)
+    agreement_fraction: float = Field(ge=0, le=1)
+    required_fraction: float = Field(ge=0.5, le=1)
+    accepted: bool
+    reason_codes: list[str]
+    votes: list[ModelVote]
+    is_calibrated_probability: Literal[False] = False
+
+
 class Proposal(StrictModel):
     action: Literal["BUY", "SELL", "HOLD"]
     confidence: float = Field(ge=0, le=1)
@@ -102,6 +127,8 @@ class Proposal(StrictModel):
     trading_validation: TradingValidation | None = None
     strategy_signals: list[StrategySignal] = Field(default_factory=list, max_length=10)
     forecast_evidence: ForecastEvidence | None = None
+    feature_evidence: dict[str, float] = Field(default_factory=dict)
+    consensus: ConsensusEvidence | None = None
 
     @model_validator(mode="after")
     def validate_optional_distribution(self):

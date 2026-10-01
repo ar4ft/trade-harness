@@ -1,3 +1,7 @@
+# 0.6.0 (development)
+
+Adds a shared-evidence orchestrator connecting the hybrid numerical model to local, OpenAI-compatible, Nimble, or llamafile language review. Fixed confirmation policies abstain on disagreement, low supporting scores, or member failure, and expose vote audits in CLI/API/dashboard. Adds bounded causal feature recipes and chronological regularization experiments with a separately shipped research artifact. Reviewed fine-tuning exports preserve shared snapshot evidence without future returns in prompts. No language weights were retrained, no profitable edge was established, and signing remains manual-only. See [orchestration and experiments](orchestration.md).
+
 # 0.5.0 (development)
 
 Adds versioned causal strategy hypotheses and an optional hybrid decision backend: observed market features plus TimesFM 3.0 forecasts feed a trained numerical decision layer. Historical forecast caching and purged ablation comparisons measure added evidence against matched baselines, with doubled-cost paper replay. Forecast and strategy evidence are separately exposed in CLI/API decisions. The default backend is retained; hybrid remains research-only; signing remains manual-only. See [hybrid setup and evaluation](hybrid-decisions.md).

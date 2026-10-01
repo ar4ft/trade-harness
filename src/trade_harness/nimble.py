@@ -6,7 +6,7 @@ import os
 import httpx
 
 from .learning import DecisionModel
-from .schemas import Proposal
+from .schemas import Forecast, ForecastEvidence, Proposal
 from .typed import ChoiceResult, NoulResult
 
 
@@ -35,8 +35,19 @@ class NimbleModel:
                 }
             )
 
-    def predict(self, market, history):
-        baseline = self.forecast_model.predict(market, history)
+    def predict(self, market, history, evidence=None):
+        if evidence is None:
+            baseline = self.forecast_model.predict(market, history)
+        else:
+            source = ForecastEvidence.model_validate(evidence["forecast"])
+            if source.as_of != market.timestamps[-1] or source.horizon != market.horizon:
+                raise ValueError("Shared forecast timestamp/horizon mismatch")
+            baseline = Proposal(
+                action="HOLD", confidence=0, rationale="Shared forecast, independent direction review",
+                forecast=Forecast(horizon=market.horizon, expected_return=source.expected_return,
+                                  projected_close=market.ohlc[-1][3] * (1 + source.expected_return),
+                                  method=source.source), forecast_interval=source.return_interval,
+            )
         state = {
             "market": {
                 "symbol": market.symbol,
@@ -53,6 +64,9 @@ class NimbleModel:
             "past_decisions": history[-5:],
             "rules": "Long/cash only. Use only available historical evidence. HOLD when evidence does not justify transaction costs.",
         }
+        if evidence is not None:
+            state.pop("numerical_direction_probabilities")
+            state["shared_evidence"] = evidence
         payload = {
             "model": os.environ.get("NIMBLE_MODEL", "nimble-latest"),
             "state": json.dumps(state),
@@ -101,3 +115,6 @@ class NimbleModel:
             validation_status="research_only",
             model_version=self.version,
         )
+
+    def predict_with_evidence(self, market, history, evidence):
+        return self.predict(market, history, evidence=evidence)

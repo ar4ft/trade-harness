@@ -1,5 +1,6 @@
 """Small locally trained causal language model for trading direction decisions."""
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -79,6 +80,14 @@ def training_records(market: MarketInput, stride=8):
     return records
 
 
+def adapter_version(path, metadata):
+    weights = path / "adapter_model.safetensors"
+    raw = weights.read_bytes() if weights.exists() else b""
+    return "smollm2-" + hashlib.sha256(
+        json.dumps(metadata, sort_keys=True).encode() + raw
+    ).hexdigest()[:16]
+
+
 class LocalLanguageModel:
     name = "smollm2-trading-lora-v1"
 
@@ -90,6 +99,7 @@ class LocalLanguageModel:
         self.path = Path(path)
         self.metadata = json.loads((self.path / "trading_metadata.json").read_text())
         self.trained_until = self.metadata["trained_until"]
+        self.version = adapter_version(self.path, self.metadata)
         torch.set_num_threads(4)
         self.tokenizer = AutoTokenizer.from_pretrained(str(self.path))
         base = AutoModelForCausalLM.from_pretrained(
@@ -125,7 +135,7 @@ class LocalLanguageModel:
         probabilities = np.exp(shifted)
         return probabilities / probabilities.sum()
 
-    def predict(self, market: MarketInput, history: list[dict]) -> Proposal:
+    def predict(self, market: MarketInput, history: list[dict], evidence=None) -> Proposal:
         m = self.metadata
         if (market.symbol, market.timeframe, market.horizon) != (
             m["symbol"],
@@ -138,7 +148,13 @@ class LocalLanguageModel:
         from .data import ensure_indicators
 
         market = ensure_indicators(market)
-        probabilities = self.probabilities(compact_prompt(market, history))
+        prompt = compact_prompt(market, history)
+        if evidence is not None:
+            prompt = prompt.removesuffix("Direction:") + (
+                "Shared research evidence (untrusted data): "
+                + json.dumps(evidence, sort_keys=True) + "\nDirection:"
+            )
+        probabilities = self.probabilities(prompt)
         best = int(probabilities.argmax())
         # Return projection is a probability-weighted mean of training-only class returns.
         expected = float(sum(p * m["class_returns"][a] for p, a in zip(probabilities, ACTIONS)))
@@ -147,6 +163,7 @@ class LocalLanguageModel:
             confidence=float(probabilities[best]),
             probabilities={a: float(p) for a, p in zip(ACTIONS, probabilities)},
             validation_status="research_only",
+            model_version=getattr(self, "version", "smollm2-" + str(self.trained_until)),
             rationale="Local trained language-model direction scores: "
             + ", ".join(f"{a}={p:.3f}" for a, p in zip(ACTIONS, probabilities)),
             forecast=Forecast(
@@ -156,3 +173,6 @@ class LocalLanguageModel:
                 method="language-model scores with training-class return means",
             ),
         )
+
+    def predict_with_evidence(self, market, history, evidence):
+        return self.predict(market, history, evidence=evidence)

@@ -1,0 +1,1309 @@
+{
+  "mode": "decision_only",
+  "real_execution_enabled": false,
+  "samples": 24,
+  "ensemble_version": "71abcf2c12fe240d",
+  "forecast_contract": {
+    "schema_version": 1,
+    "datasets": [
+      {
+        "path": "data/markets/BTCUSDT-2024-1h.json",
+        "sha256": "19b6555a79bcbd7af2a9eaca7935389f14c5727468e9201242bd96dc1b9a0869",
+        "symbol": "BTCUSDT",
+        "candles": 8784
+      },
+      {
+        "path": "data/markets/BTCUSDT-2025-1h.json",
+        "sha256": "a1f059fd0bac2e7e15270b04cce72d6fac2d1cf58dc3d2090b286df54ac92039",
+        "symbol": "BTCUSDT",
+        "candles": 8760
+      },
+      {
+        "path": "data/markets/BTCUSDT-2026-1h.json",
+        "sha256": "7c245b305fe70ec3b5be7376846e5b0f581e9ffb6d2cb323c799513084bff687",
+        "symbol": "BTCUSDT",
+        "candles": 5832
+      },
+      {
+        "path": "data/markets/ETHUSDT-2024-1h.json",
+        "sha256": "499c058b9c56fa195cb17c317d8dd8ad9fe6137af044624821c80820e70ed2b3",
+        "symbol": "ETHUSDT",
+        "candles": 8784
+      },
+      {
+        "path": "data/markets/ETHUSDT-2025-1h.json",
+        "sha256": "6be82ba956e88dff6518887142f50a80e5ff8ad52f08ee5732e9c923d2e9ef3d",
+        "symbol": "ETHUSDT",
+        "candles": 8760
+      },
+      {
+        "path": "data/markets/ETHUSDT-2026-1h.json",
+        "sha256": "5a087e13931a269a51362799160c4849e51a2149dfce476bdfaf65f5e5d65713",
+        "symbol": "ETHUSDT",
+        "candles": 5832
+      },
+      {
+        "path": "data/markets/SOLUSDT-2024-1h.json",
+        "sha256": "4bd217cd9fb13ff3b5e1bcd41cf921feb0d373ac8beebfd1dd3eccc582b27c72",
+        "symbol": "SOLUSDT",
+        "candles": 8784
+      },
+      {
+        "path": "data/markets/SOLUSDT-2025-1h.json",
+        "sha256": "addafd5c093efac141ac5c758073e0f18e77367ee0885b14279319e26a6eaa48",
+        "symbol": "SOLUSDT",
+        "candles": 8760
+      },
+      {
+        "path": "data/markets/SOLUSDT-2026-1h.json",
+        "sha256": "6f0f48fc26090d0d3657fddf8687342d915a144b6b4123839bcc61a1a05635e3",
+        "symbol": "SOLUSDT",
+        "candles": 5832
+      }
+    ],
+    "stride": 48,
+    "context_length": 100,
+    "model_version": "timesfm3-43046b85ec22d584a13f8098c2ed39c889e129c2-ctx100-interval-policy-v1",
+    "strategy_version": "trend-breakout-reversion-v1",
+    "cache_sha256": "6a92fffbfa9ebdeb2ce2d2de9b85540905ab027b067394e4e7132d956a155362"
+  },
+  "numeric_trained_until": 1771311599999,
+  "reviewer_trained_until": 1778759999999,
+  "agreement_rate": 0.041666666666666664,
+  "numeric_direction_accuracy": 0.625,
+  "reviewer_direction_accuracy": 0.25,
+  "consensus_direction_accuracy": 0.625,
+  "hold_rate": 1.0,
+  "records": [
+    {
+      "as_of": 1784087999999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": 0.0003395480923571448,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.3413648992274096,
+            "probabilities": {
+              "BUY": 0.3381362276313406,
+              "SELL": 0.32049887314124975,
+              "HOLD": 0.3413648992274096
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "d51d15c01ed590c8d93980c318a0309530af6b32dcf0a1f656376acd5849837c"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.6077636179638443,
+            "probabilities": {
+              "BUY": 0.6077636179638443,
+              "SELL": 0.16029563022759394,
+              "HOLD": 0.23194075180856175
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "d51d15c01ed590c8d93980c318a0309530af6b32dcf0a1f656376acd5849837c"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1784260799999,
+      "realized_label": "SELL",
+      "realized_next_open_return": -0.009784489539090724,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 2,
+        "agreement_fraction": 1.0,
+        "required_fraction": 1.0,
+        "accepted": true,
+        "reason_codes": [],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.3967516531921505,
+            "probabilities": {
+              "BUY": 0.27620580340893575,
+              "SELL": 0.32704254339891375,
+              "HOLD": 0.3967516531921505
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "7ec273a36add5d9faf46dc702ba02963b0086f6eaa44d701d74131a38097f9a8"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.48504333340035505,
+            "probabilities": {
+              "BUY": 0.2978683699503433,
+              "SELL": 0.21708829664930168,
+              "HOLD": 0.48504333340035505
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "7ec273a36add5d9faf46dc702ba02963b0086f6eaa44d701d74131a38097f9a8"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1784433599999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": 8.5154153745437e-05,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.3925400946812036,
+            "probabilities": {
+              "BUY": 0.3163426054098511,
+              "SELL": 0.29111729990894536,
+              "HOLD": 0.3925400946812036
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "2f8d4b88128958a952e4afbee94da911040d61a544e65434ef7beffc224c4328"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5432709620298316,
+            "probabilities": {
+              "BUY": 0.5432709620298316,
+              "SELL": 0.13586820718894804,
+              "HOLD": 0.3208608307812203
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "2f8d4b88128958a952e4afbee94da911040d61a544e65434ef7beffc224c4328"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1784606399999,
+      "realized_label": "BUY",
+      "realized_next_open_return": 0.00528057124058412,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.363633781637889,
+            "probabilities": {
+              "BUY": 0.33068053083641424,
+              "SELL": 0.3056856875256967,
+              "HOLD": 0.363633781637889
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "1cff62c6cfb95da32d3e2a30f27cb28fd58003d5616600ee1db428da299aac22"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5361961861381656,
+            "probabilities": {
+              "BUY": 0.5361961861381656,
+              "SELL": 0.15902806863505467,
+              "HOLD": 0.30477574522677975
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "1cff62c6cfb95da32d3e2a30f27cb28fd58003d5616600ee1db428da299aac22"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1784779199999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": 0.0019412898040938042,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.44583992710198755,
+            "probabilities": {
+              "BUY": 0.2409780336400847,
+              "SELL": 0.31318203925792776,
+              "HOLD": 0.44583992710198755
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "9fcfc4db2b54013011008b8639568531c4652dc18e07fe5d6c052e3b6b0740da"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.6401104557291809,
+            "probabilities": {
+              "BUY": 0.6401104557291809,
+              "SELL": 0.12102589033688317,
+              "HOLD": 0.23886365393393583
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "9fcfc4db2b54013011008b8639568531c4652dc18e07fe5d6c052e3b6b0740da"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1784951999999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": -0.001175931601226865,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4394140198681203,
+            "probabilities": {
+              "BUY": 0.29276056109706666,
+              "SELL": 0.26782541903481305,
+              "HOLD": 0.4394140198681203
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "6d4166061784251b7fbda7307abac55973707c9090aff6cae91ca3792a01dcce"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5661108075293895,
+            "probabilities": {
+              "BUY": 0.5661108075293895,
+              "SELL": 0.1591154435456865,
+              "HOLD": 0.2747737489249241
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "6d4166061784251b7fbda7307abac55973707c9090aff6cae91ca3792a01dcce"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1785124799999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": 0.002033576373996704,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.41066060369398655,
+            "probabilities": {
+              "BUY": 0.3300831888728339,
+              "SELL": 0.2592562074331797,
+              "HOLD": 0.41066060369398655
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "80a52d94e824b02fde91991b2d64b2da64b09cab5c5531fd00e926b43ba543f1"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.6223523231228982,
+            "probabilities": {
+              "BUY": 0.6223523231228982,
+              "SELL": 0.13323814194474576,
+              "HOLD": 0.24440953493235598
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "80a52d94e824b02fde91991b2d64b2da64b09cab5c5531fd00e926b43ba543f1"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1785297599999,
+      "realized_label": "BUY",
+      "realized_next_open_return": 0.010706626695762278,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4226596877809829,
+            "probabilities": {
+              "BUY": 0.2825021264363919,
+              "SELL": 0.2948381857826253,
+              "HOLD": 0.4226596877809829
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "480a282f44f2c7f1b2f5345d29f3d2efa27f18486886f008ce1418bb0e877959"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5699840068840781,
+            "probabilities": {
+              "BUY": 0.5699840068840781,
+              "SELL": 0.14452525037372155,
+              "HOLD": 0.28549074274220027
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "480a282f44f2c7f1b2f5345d29f3d2efa27f18486886f008ce1418bb0e877959"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1785470399999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": -0.0021443218890787596,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4494249344165485,
+            "probabilities": {
+              "BUY": 0.24963937260706767,
+              "SELL": 0.3009356929763837,
+              "HOLD": 0.4494249344165485
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "0b599ea3a3d1cd55f0e1fc24bbcd5a7045120e6239bbbedad3aed571a38f323d"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5314975998884564,
+            "probabilities": {
+              "BUY": 0.5314975998884564,
+              "SELL": 0.16353994474331096,
+              "HOLD": 0.30496245536823263
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "0b599ea3a3d1cd55f0e1fc24bbcd5a7045120e6239bbbedad3aed571a38f323d"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1785643199999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": 0.000323658507184188,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4475037426496941,
+            "probabilities": {
+              "BUY": 0.3725277526022999,
+              "SELL": 0.1799685047480059,
+              "HOLD": 0.4475037426496941
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "c88018fd01a300bdc21bcb4b9a2e3c577830db74f12a33f604f8475482acdd7c"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5354306331719738,
+            "probabilities": {
+              "BUY": 0.5354306331719738,
+              "SELL": 0.17879909743745542,
+              "HOLD": 0.2857702693905708
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "c88018fd01a300bdc21bcb4b9a2e3c577830db74f12a33f604f8475482acdd7c"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1785815999999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": -0.002037773975270607,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.3720450277431589,
+            "probabilities": {
+              "BUY": 0.31608250435570134,
+              "SELL": 0.31187246790113976,
+              "HOLD": 0.3720450277431589
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "83b3ce290271929798dae8d9ea5e61370c51543beed294bbdcef0b0487d2bd7b"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5501157615019665,
+            "probabilities": {
+              "BUY": 0.5501157615019665,
+              "SELL": 0.14505111312351965,
+              "HOLD": 0.3048331253745138
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "83b3ce290271929798dae8d9ea5e61370c51543beed294bbdcef0b0487d2bd7b"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1785988799999,
+      "realized_label": "BUY",
+      "realized_next_open_return": 0.005097857573325593,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4608904606670539,
+            "probabilities": {
+              "BUY": 0.25814351694476795,
+              "SELL": 0.280966022388178,
+              "HOLD": 0.4608904606670539
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "a1090210cc3ae754a518cdcaae705f1c4b22a3b98afcd1edaaf936e64cbc0bdf"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5749651126460128,
+            "probabilities": {
+              "BUY": 0.5749651126460128,
+              "SELL": 0.14223602709915856,
+              "HOLD": 0.2827988602548287
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "a1090210cc3ae754a518cdcaae705f1c4b22a3b98afcd1edaaf936e64cbc0bdf"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1786161599999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": -0.00040579398151707746,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4196354648163887,
+            "probabilities": {
+              "BUY": 0.3042721910650587,
+              "SELL": 0.27609234411855255,
+              "HOLD": 0.4196354648163887
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "a3f55c0c26bff2f18ac3f5843dae9636a5b99fcb666545afc83019fdab6a6f40"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5243034144419896,
+            "probabilities": {
+              "BUY": 0.5243034144419896,
+              "SELL": 0.15139485243434495,
+              "HOLD": 0.3243017331236656
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "a3f55c0c26bff2f18ac3f5843dae9636a5b99fcb666545afc83019fdab6a6f40"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1786334399999,
+      "realized_label": "BUY",
+      "realized_next_open_return": 0.004884429534332657,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4494488090953352,
+            "probabilities": {
+              "BUY": 0.27453171419083866,
+              "SELL": 0.276019476713826,
+              "HOLD": 0.4494488090953352
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "7c01c681b8e3310dc16b5f819a8eaaa31587bf3d70779ef5782e72abf5211de5"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.583680608022145,
+            "probabilities": {
+              "BUY": 0.583680608022145,
+              "SELL": 0.13107111865271778,
+              "HOLD": 0.28524827332513725
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "7c01c681b8e3310dc16b5f819a8eaaa31587bf3d70779ef5782e72abf5211de5"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1786507199999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": -0.0019363809336423454,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4653380225873732,
+            "probabilities": {
+              "BUY": 0.283526179895366,
+              "SELL": 0.25113579751726084,
+              "HOLD": 0.4653380225873732
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "c83f535c9461fa616ab22ce6617e0ff886c4ef4c5325c3bba18f674c262ec44f"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5539721025374854,
+            "probabilities": {
+              "BUY": 0.5539721025374854,
+              "SELL": 0.14367845921892453,
+              "HOLD": 0.30234943824359006
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "c83f535c9461fa616ab22ce6617e0ff886c4ef4c5325c3bba18f674c262ec44f"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1786679999999,
+      "realized_label": "SELL",
+      "realized_next_open_return": -0.005305007107881843,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4722090422795257,
+            "probabilities": {
+              "BUY": 0.24101160272946862,
+              "SELL": 0.28677935499100565,
+              "HOLD": 0.4722090422795257
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "d184d0a28bf8b6b5f9709cc93c229898467839308e37752fdcd5fa1f9f626ab6"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.49547320062719336,
+            "probabilities": {
+              "BUY": 0.49547320062719336,
+              "SELL": 0.15653807343771628,
+              "HOLD": 0.3479887259350905
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "d184d0a28bf8b6b5f9709cc93c229898467839308e37752fdcd5fa1f9f626ab6"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1786852799999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": -0.0009615078470603944,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.5008399674508673,
+            "probabilities": {
+              "BUY": 0.27467357999941433,
+              "SELL": 0.22448645254971838,
+              "HOLD": 0.5008399674508673
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "6f305e226abdd423d508c18af0d77bd7ebcf3469d221c0fbb25e481d1f445b43"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5034872601482988,
+            "probabilities": {
+              "BUY": 0.5034872601482988,
+              "SELL": 0.16716321452580685,
+              "HOLD": 0.32934952532589434
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "6f305e226abdd423d508c18af0d77bd7ebcf3469d221c0fbb25e481d1f445b43"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1787025599999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": 0.002072602633014009,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.37569789571102546,
+            "probabilities": {
+              "BUY": 0.30614387170228463,
+              "SELL": 0.3181582325866899,
+              "HOLD": 0.37569789571102546
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "6f5c0de6ba9f9a0a088e80be04255a251d9bd09454ba4b2d2300697d2fc5b7b8"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5355784735478551,
+            "probabilities": {
+              "BUY": 0.5355784735478551,
+              "SELL": 0.12897728167745273,
+              "HOLD": 0.33544424477469204
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "6f5c0de6ba9f9a0a088e80be04255a251d9bd09454ba4b2d2300697d2fc5b7b8"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1787198399999,
+      "realized_label": "BUY",
+      "realized_next_open_return": 0.00948542422615084,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4201334249212183,
+            "probabilities": {
+              "BUY": 0.328316385397326,
+              "SELL": 0.2515501896814556,
+              "HOLD": 0.4201334249212183
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "23eef35f21347878e7e2dad53e8c7abfc8b7cf9cd25a40ab22422742f2dd9558"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5962728317843814,
+            "probabilities": {
+              "BUY": 0.5962728317843814,
+              "SELL": 0.16012235823884322,
+              "HOLD": 0.2436048099767755
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "23eef35f21347878e7e2dad53e8c7abfc8b7cf9cd25a40ab22422742f2dd9558"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1787371199999,
+      "realized_label": "SELL",
+      "realized_next_open_return": -0.011795414366712387,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.3765580000145158,
+            "probabilities": {
+              "BUY": 0.317406175872239,
+              "SELL": 0.3060358241132453,
+              "HOLD": 0.3765580000145158
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "fa0c70222e8cdf68f42ef28626201e2c3d4b16f6cd44ba44cd5de90e93284361"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5679489649064214,
+            "probabilities": {
+              "BUY": 0.5679489649064214,
+              "SELL": 0.14371505022623127,
+              "HOLD": 0.28833598486734735
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "fa0c70222e8cdf68f42ef28626201e2c3d4b16f6cd44ba44cd5de90e93284361"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1787543999999,
+      "realized_label": "BUY",
+      "realized_next_open_return": 0.006906137312690852,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement",
+          "supporting_score_below_policy_threshold"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "SELL",
+            "confidence": 0.37320114183357417,
+            "probabilities": {
+              "BUY": 0.29471855581476786,
+              "SELL": 0.37320114183357417,
+              "HOLD": 0.332080302351658
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "63d763976fe9c0f015360bc349481c2aed229e51fae574b89f730158a870c9e9"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.6389295077776449,
+            "probabilities": {
+              "BUY": 0.6389295077776449,
+              "SELL": 0.12418748261491531,
+              "HOLD": 0.23688300960743974
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "63d763976fe9c0f015360bc349481c2aed229e51fae574b89f730158a870c9e9"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1787716799999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": -0.0017788907909748186,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4200666431639041,
+            "probabilities": {
+              "BUY": 0.28840422918838005,
+              "SELL": 0.2915291276477159,
+              "HOLD": 0.4200666431639041
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "1352c1ed8b840fea0b483bed6afdb7a49ff03cc9d93880a7e5fc67842c854f4b"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5931209218514022,
+            "probabilities": {
+              "BUY": 0.5931209218514022,
+              "SELL": 0.1310612593418972,
+              "HOLD": 0.2758178188067006
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "1352c1ed8b840fea0b483bed6afdb7a49ff03cc9d93880a7e5fc67842c854f4b"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1787889599999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": 0.001174407170587255,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.4242065994301577,
+            "probabilities": {
+              "BUY": 0.26804610232767895,
+              "SELL": 0.3077472982421634,
+              "HOLD": 0.4242065994301577
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "d4447b8296d52c1f65dee2aa42e02ca47a0807b2a051a14668cb2b5aef86e97f"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.6013362973492755,
+            "probabilities": {
+              "BUY": 0.6013362973492755,
+              "SELL": 0.14004107940752636,
+              "HOLD": 0.2586226232431981
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "d4447b8296d52c1f65dee2aa42e02ca47a0807b2a051a14668cb2b5aef86e97f"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    },
+    {
+      "as_of": 1788062399999,
+      "realized_label": "HOLD",
+      "realized_next_open_return": 0.0017360106919626084,
+      "action": "HOLD",
+      "consensus": {
+        "policy": "primary-confirmation-v1",
+        "configured_members": 2,
+        "valid_members": 2,
+        "supporting_members": 1,
+        "agreement_fraction": 0.5,
+        "required_fraction": 1.0,
+        "accepted": false,
+        "reason_codes": [
+          "insufficient_agreement"
+        ],
+        "votes": [
+          {
+            "member": "numerical",
+            "model_version": "fce8e0a60b433450",
+            "status": "ok",
+            "action": "HOLD",
+            "confidence": 0.5133101237358536,
+            "probabilities": {
+              "BUY": 0.23664940969580323,
+              "SELL": 0.2500404665683432,
+              "HOLD": 0.5133101237358536
+            },
+            "calibration": "temperature fitted on chronological calibration data",
+            "evidence_mode": "trained_features",
+            "evidence_sha256": "ef33e1d7bfeb065bf507b05e0657916bb854987b7904080cbfc33d2790e9db4a"
+          },
+          {
+            "member": "local-llm",
+            "model_version": "smollm2-3f1c9012bfa8874b",
+            "status": "ok",
+            "action": "BUY",
+            "confidence": 0.5252703222042868,
+            "probabilities": {
+              "BUY": 0.5252703222042868,
+              "SELL": 0.16393211885347603,
+              "HOLD": 0.31079755894223704
+            },
+            "calibration": "uncalibrated",
+            "evidence_mode": "extended_prompt_untrained",
+            "evidence_sha256": "ef33e1d7bfeb065bf507b05e0657916bb854987b7904080cbfc33d2790e9db4a"
+          }
+        ],
+        "is_calibrated_probability": false
+      }
+    }
+  ],
+  "limitations": [
+    "Only a small BTC operational agreement audit; not walk-forward trading validation.",
+    "No fees/slippage replay in this audit; automatic direction labels are not expert judgments.",
+    "Both known training cutoffs precede samples; TimesFM pretraining overlap remains unknown.",
+    "The local LoRA was not trained on the extended shared-evidence prompt.",
+    "This already examined historical period is not prospective confirmation."
+  ]
+}

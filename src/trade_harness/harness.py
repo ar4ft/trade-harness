@@ -36,6 +36,8 @@ class Harness:
                 else [],
             )
             proposed = Proposal.model_validate(proposed.model_dump())
+            if not getattr(self.model, "produces_consensus", False):
+                proposed.consensus = None
             # Evidence comes from the configured backend's measured artifact, never LLM text.
             validator = getattr(self.model, "validation_for", None)
             evidence = (
@@ -79,6 +81,8 @@ class Harness:
                 horizon=market.horizon,
                 model_version=proposed.model_version,
             )
+        if proposed.consensus is not None and not proposed.consensus.accepted:
+            guards.append("consensus_not_reached")
         if proposed.confidence < self.minimum_confidence:
             guards.append("low_confidence")
         if features(market)[3] > self.max_volatility:

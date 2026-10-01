@@ -24,6 +24,18 @@ Open **http://127.0.0.1:8000/** for the paper-trading dashboard, or `/docs` for 
 
 `decide` uses the shipped historical August 2026 snapshot; it does not fetch live prices. The default `decision` backend runs without model downloads or API keys. It is trained for BTCUSDT/ETHUSDT/SOLUSDT, 1h candles, a 3-candle horizon. Other assets or contracts require retraining.
 
+## Shared-evidence consensus and parameter experiments
+
+The optional orchestrator connects the hybrid numerical model to language reviewers, sharing forecast, strategy, and engineered feature evidence. Disagreement or reviewer failure produces HOLD, with each vote visible in the API and dashboard.
+
+```bash
+pip install -e '.[orchestrator]'
+trade-harness decide --backend orchestrator --reviewers local-llm
+trade-harness tune-hybrid --model-output artifacts/hybrid/tuned-model.json
+```
+
+Consensus is not a calibrated probability or evidence of profitability. Feature/regularization experiments use chronological validation and never activate a model automatically. See [orchestration, configuration, tuning, and fine-tuning data](docs/orchestration.md).
+
 ## Combined forecast and strategy decisions
 
 The optional `hybrid` backend feeds TimesFM forecast returns and uncertainty, observed market features, and trend/breakout/mean-reversion hypotheses into a trained numerical decision model. Each response exposes forecast evidence and strategy signals separately.

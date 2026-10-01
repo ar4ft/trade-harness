@@ -93,13 +93,16 @@ class LanguageModel:
         self.key = os.environ.get("LLM_API_KEY", "")
         if not self.model:
             raise ValueError("Set LLM_MODEL for the llm backend")
+        self.version = self.model
 
-    def predict(self, market, history):
+    def predict(self, market, history, evidence=None):
         payload = {
             "market": market.model_dump(),
             "prior_decisions": history,
             "output_schema": Proposal.model_json_schema(),
         }
+        if evidence is not None:
+            payload["shared_evidence"] = evidence
         headers = {"Authorization": f"Bearer {self.key}"} if self.key else {}
         with httpx.Client(timeout=60) as client:
             response = client.post(
@@ -116,11 +119,20 @@ class LanguageModel:
                 },
             )
             response.raise_for_status()
-            return Proposal.model_validate_json(response.json()["choices"][0]["message"]["content"])
+            value = Proposal.model_validate_json(response.json()["choices"][0]["message"]["content"])
+            value.model_version = self.version
+            return value
+
+    def predict_with_evidence(self, market, history, evidence):
+        return self.predict(market, history, evidence=evidence)
 
 
-def load_model():
-    backend = os.environ.get("TRADING_BACKEND", "decision")
+def load_model(backend=None):
+    backend = backend or os.environ.get("TRADING_BACKEND", "decision")
+    if backend == "orchestrator":
+        from .orchestrator import Orchestrator
+
+        return Orchestrator()
     if backend == "decision":
         from .learning import DecisionModel
 

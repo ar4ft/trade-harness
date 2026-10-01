@@ -377,8 +377,8 @@ def test_incomplete_state_is_rejected(tmp_path, state):
         Updater(tmp_path, current_version="0.4.0").state()
 
 
-@pytest.mark.parametrize("backend", ["timesfm", "hybrid"])
-def test_forecast_updates_select_optional_dependencies(tmp_path, monkeypatch, backend):
+@pytest.mark.parametrize("backend,extra", [("timesfm", "timesfm"), ("hybrid", "timesfm"), ("orchestrator", "orchestrator")])
+def test_forecast_updates_select_optional_dependencies(tmp_path, monkeypatch, backend, extra):
     monkeypatch.delenv("TRADING_UPDATE_EXTRAS", raising=False)
     monkeypatch.setenv("TRADING_BACKEND", backend)
     create = []
@@ -393,4 +393,4 @@ def test_forecast_updates_select_optional_dependencies(tmp_path, monkeypatch, ba
     wheel = tmp_path / "package.whl"
     updater.install_wheel(wheel, tmp_path / "environment", "0.4.2")
     assert create == [tmp_path / "environment"]
-    assert commands[0][-1] == str(wheel) + "[timesfm]"
+    assert commands[0][-1] == str(wheel) + f"[{extra}]"
