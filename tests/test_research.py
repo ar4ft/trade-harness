@@ -279,12 +279,15 @@ def test_paired_live_capture_and_matured_outcome_join(tmp_path, monkeypatch):
     assert not report["promotion"]["accepted"]
     assert "100_closed_trades" in report["promotion"]["failed_gates"]
     assert report["promotion"]["fixed_evaluation_endpoint"]
+    monkeypatch.setattr("trade_harness.prospective.time.time", lambda: (now + 3.5 * 3600000) / 1000)
+    early = summarize_forward(plan_path, journal, [str(source)], tmp_path / "early.json")
+    assert not early["promotion"]["fixed_evaluation_endpoint"]
+    assert "predeclared_evaluation_endpoint" in early["promotion"]["failed_gates"]
     # A sparse outcome archive cannot extend the declared target into later observations.
     later.timestamps[-2:] = [now + 10 * 3600000, now + 11 * 3600000]
     source.write_text(later.model_dump_json())
-    bounded = summarize_forward(plan_path, journal, [str(source)], tmp_path / "bounded.json")
-    assert bounded["matured_decisions"] == 0
-    assert bounded["promotion"]["matured_outcome_coverage"] == 0
+    with pytest.raises(ValueError, match="missing intervals"):
+        summarize_forward(plan_path, journal, [str(source)], tmp_path / "bounded.json")
 
 
 def test_cached_candidate_likelihood_matches_independent_teacher_forcing():
