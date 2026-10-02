@@ -200,7 +200,7 @@ flowchart TD
     Explicit --> Runtime["Inference with the same feature recipe"]
 ```
 
-`tune-hybrid` tests bounded numerical settings offline: feature recipe, classifier regularization C and Ridge alpha. The base recipe has 35 features; the interaction recipe adds four bounded causal combinations. Scaling fits only on training data; temperature calibration uses a later separate partition. Labels crossing segment boundaries are purged. Final-period outcomes cannot select the winner or promote validation. The default eight-trial run produced no positive trading edge and did not activate its tuned artifact.
+`tune-hybrid` tests bounded numerical settings offline: feature recipe, classifier regularization C and Ridge alpha. Base, interaction, and quant recipes have 35, 39, and 45 features. The default registry has twelve trials and reports paired validation-fold differences. Scaling fits only on training data; temperature calibration uses a later separate partition. Labels crossing segment boundaries are purged. Final-period outcomes cannot select the winner or promote validation. The original eight-trial run produced no positive trading edge and did not activate its tuned artifact.
 
 This is parameter fitting for the numerical layer. It does not fine-tune TimesFM or language weights, change live risk limits, generate executable strategy code, or maximize agreement. The [hybrid guide](hybrid-decisions.md) describes forecast caching and sparse decision sampling; the [orchestration guide](orchestration.md) gives reproducible tuning commands.
 
@@ -219,6 +219,8 @@ flowchart LR
 Consensus is not a training label. The exporter uses human-reviewed actions as targets and retains recorded shared evidence in the user prompt when available. Future realized returns stay outside the prompt. The generic chat trainer is available separately; exporting examples does not make its resulting adapter interchangeable with the shipped compact candidate-scoring adapter or an Ollaya decision head. Deployment requires a matching inference adapter and evaluation. The shipped local reviewer has not been retrained on the extended evidence prompt.
 
 Matured outcomes entering history are context updates, not automatic online learning. There is no background training job or self-modifying strategy loop.
+
+The [contextual research workflow](research-workflow.md) separately trains a position-aware reviewer using the actual shared-evidence prompt, purged next-open outcome labels, and a later calibration partition. It evaluates the complete consensus and risk policy against matched baselines. Fresh promotion evidence is collected only after declaring fixed model/code/risk identities. The original shipped compact reviewer is retained until a candidate earns activation through an explicit, evidenced decision.
 
 ## Deployment and update boundaries
 

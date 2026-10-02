@@ -13,9 +13,9 @@ from trade_harness.schemas import MarketInput
 
 def test_trial_registry_is_bounded_and_distinct():
     trials = default_trials()
-    assert len(trials) == 8
-    assert len({t["name"] for t in trials}) == 8
-    assert {t["features"]["recipe"] for t in trials} == {"base", "interactions"}
+    assert len(trials) == 12
+    assert len({t["name"] for t in trials}) == 12
+    assert {t["features"]["recipe"] for t in trials} == {"base", "interactions", "quant"}
 
 
 def test_tuning_selection_excludes_changed_final_period(tmp_path):

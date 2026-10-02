@@ -5,6 +5,8 @@ from typing import Literal
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .promotion import PromotionEvidence
+
 
 class TradingValidation(BaseModel):
     model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
@@ -29,6 +31,7 @@ class TradingValidation(BaseModel):
     gates: dict[str, bool] = Field(default_factory=dict)
     failed_gates: list[str] = Field(default_factory=list)
     positive_edge: bool = False
+    promotion: PromotionEvidence | None = None
     status: Literal["validated", "research_only", "unknown"] = "unknown"
 
     @model_validator(mode="after")
@@ -61,6 +64,12 @@ class TradingValidation(BaseModel):
                 and self.final_test_start is not None
                 and self.evaluated_until < self.final_test_start
             ),
+            "fresh_forward_promotion_v2": self.promotion is not None and self.promotion.accepted
+            and self.promotion.model_version == self.model_version
+            and self.promotion.fold_count == self.fold_count
+            and self.promotion.closed_trades == self.closed_trades
+            and self.promotion.positive_folds == self.positive_folds
+            and self.promotion.evaluation_end == self.evaluated_until,
         }
         self.failed_gates = [key for key, passed in self.gates.items() if not passed]
         self.positive_edge = not self.failed_gates
@@ -165,4 +174,5 @@ def validation_report(model, symbol=None):
         "validation": global_evidence.model_dump(),
         "per_asset": per_asset,
         "interpretation": "Evidence for a fixed simulated decision policy; passing does not guarantee future profitability or enable orders.",
+        "promotion_policy": "research-promotion-v2",
     }

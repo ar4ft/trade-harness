@@ -59,23 +59,13 @@ class FixedModel:
 
     def validation_for(self, symbol):
         # Synthetic passing evidence isolates risk/persistence behavior in these unit tests.
-        return TradingValidation(
-            symbol=symbol,
-            timeframe="1h",
-            horizon=3,
-            model_version=self.version,
-            fold_count=3,
-            closed_trades=30,
-            positive_folds=3,
-            mean_net_return=0.02,
-            mean_momentum_return=0.01,
-            mean_cost_stressed_return=0.01,
-            mean_return_interval=[0.01, 0.03],
-            brier_improvement=0.01,
-            purged_boundaries=True,
-            evaluated_until=1600000000000,
-            final_test_start=1600000000001,
-        )
+        from test_trading_validation import passing_evidence
+
+        evidence = passing_evidence(symbol).model_dump()
+        evidence["model_version"] = self.version
+        evidence["promotion"]["model_version"] = self.version
+        return TradingValidation.model_validate(evidence)
+
 
 
 def account():

@@ -1,0 +1,190 @@
+{
+  "forecast_contract": {
+    "cache_sha256": "6a92fffbfa9ebdeb2ce2d2de9b85540905ab027b067394e4e7132d956a155362",
+    "context_length": 100,
+    "datasets": [
+      {
+        "candles": 8784,
+        "path": "data/markets/BTCUSDT-2024-1h.json",
+        "sha256": "19b6555a79bcbd7af2a9eaca7935389f14c5727468e9201242bd96dc1b9a0869",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "candles": 8760,
+        "path": "data/markets/BTCUSDT-2025-1h.json",
+        "sha256": "a1f059fd0bac2e7e15270b04cce72d6fac2d1cf58dc3d2090b286df54ac92039",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "candles": 5832,
+        "path": "data/markets/BTCUSDT-2026-1h.json",
+        "sha256": "7c245b305fe70ec3b5be7376846e5b0f581e9ffb6d2cb323c799513084bff687",
+        "symbol": "BTCUSDT"
+      },
+      {
+        "candles": 8784,
+        "path": "data/markets/ETHUSDT-2024-1h.json",
+        "sha256": "499c058b9c56fa195cb17c317d8dd8ad9fe6137af044624821c80820e70ed2b3",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "candles": 8760,
+        "path": "data/markets/ETHUSDT-2025-1h.json",
+        "sha256": "6be82ba956e88dff6518887142f50a80e5ff8ad52f08ee5732e9c923d2e9ef3d",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "candles": 5832,
+        "path": "data/markets/ETHUSDT-2026-1h.json",
+        "sha256": "5a087e13931a269a51362799160c4849e51a2149dfce476bdfaf65f5e5d65713",
+        "symbol": "ETHUSDT"
+      },
+      {
+        "candles": 8784,
+        "path": "data/markets/SOLUSDT-2024-1h.json",
+        "sha256": "4bd217cd9fb13ff3b5e1bcd41cf921feb0d373ac8beebfd1dd3eccc582b27c72",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "candles": 8760,
+        "path": "data/markets/SOLUSDT-2025-1h.json",
+        "sha256": "addafd5c093efac141ac5c758073e0f18e77367ee0885b14279319e26a6eaa48",
+        "symbol": "SOLUSDT"
+      },
+      {
+        "candles": 5832,
+        "path": "data/markets/SOLUSDT-2026-1h.json",
+        "sha256": "6f0f48fc26090d0d3657fddf8687342d915a144b6b4123839bcc61a1a05635e3",
+        "symbol": "SOLUSDT"
+      }
+    ],
+    "model_version": "timesfm3-43046b85ec22d584a13f8098c2ed39c889e129c2-ctx100-interval-policy-v1",
+    "schema_version": 1,
+    "strategy_version": "trend-breakout-reversion-v1",
+    "stride": 48
+  },
+  "selection_rule": "Lowest mean purged validation log loss; final test compares only the locked winner and untuned base. No automatic activation or consensus-agreement objective.",
+  "test_start": 1771473599999,
+  "trials": {
+    "base_c0_1_a10": {
+      "features": {
+        "recipe": "base",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.1,
+        "ridge_alpha": 10.0
+      }
+    },
+    "base_c0_1_a100": {
+      "features": {
+        "recipe": "base",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.1,
+        "ridge_alpha": 100.0
+      }
+    },
+    "base_c0_5_a10": {
+      "features": {
+        "recipe": "base",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.5,
+        "ridge_alpha": 10.0
+      }
+    },
+    "base_c0_5_a100": {
+      "features": {
+        "recipe": "base",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.5,
+        "ridge_alpha": 100.0
+      }
+    },
+    "interactions_c0_1_a10": {
+      "features": {
+        "recipe": "interactions",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.1,
+        "ridge_alpha": 10.0
+      }
+    },
+    "interactions_c0_1_a100": {
+      "features": {
+        "recipe": "interactions",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.1,
+        "ridge_alpha": 100.0
+      }
+    },
+    "interactions_c0_5_a10": {
+      "features": {
+        "recipe": "interactions",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.5,
+        "ridge_alpha": 10.0
+      }
+    },
+    "interactions_c0_5_a100": {
+      "features": {
+        "recipe": "interactions",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.5,
+        "ridge_alpha": 100.0
+      }
+    },
+    "quant_c0_1_a10": {
+      "features": {
+        "recipe": "quant",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.1,
+        "ridge_alpha": 10.0
+      }
+    },
+    "quant_c0_1_a100": {
+      "features": {
+        "recipe": "quant",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.1,
+        "ridge_alpha": 100.0
+      }
+    },
+    "quant_c0_5_a10": {
+      "features": {
+        "recipe": "quant",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.5,
+        "ridge_alpha": 10.0
+      }
+    },
+    "quant_c0_5_a100": {
+      "features": {
+        "recipe": "quant",
+        "version": "causal-recipes-v1"
+      },
+      "parameters": {
+        "logistic_c": 0.5,
+        "ridge_alpha": 100.0
+      }
+    }
+  }
+}

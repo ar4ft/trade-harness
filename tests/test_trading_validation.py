@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from trade_harness.api import app, runtime
 from trade_harness.harness import Harness
 from trade_harness.learning import DecisionModel
+from trade_harness.promotion import PromotionEvidence
 from trade_harness.risk import RiskConfig
 from trade_harness.schemas import Forecast, MarketInput, Proposal
 from trade_harness.storage import Store
@@ -18,8 +19,8 @@ def passing_evidence(symbol="BTCUSDT"):
         timeframe="1h",
         horizon=3,
         model_version="test-model-v1",
-        fold_count=3,
-        closed_trades=30,
+        fold_count=5,
+        closed_trades=100,
         positive_folds=3,
         mean_net_return=0.02,
         mean_momentum_return=0.01,
@@ -27,8 +28,23 @@ def passing_evidence(symbol="BTCUSDT"):
         mean_return_interval=[0.001, 0.04],
         brier_improvement=0.01,
         purged_boundaries=True,
-        evaluated_until=1,
-        final_test_start=2,
+        evaluated_until=1000,
+        final_test_start=1001,
+        promotion=PromotionEvidence(
+            plan_sha256="a" * 64, model_version="test-model-v1", locked_at=0,
+            last_examined_at=10, evaluation_start=100, evaluation_end=1000,
+            predictions_recorded_before_outcomes=True, model_and_policy_locked=True,
+            fixed_evaluation_endpoint=True,
+            trial_count=12, fold_count=5, closed_trades=100, positive_folds=3,
+            positive_net_return=True, positive_double_cost_return=True,
+            paired_interval_lower=0.001, cash_interval_lower=0.001,
+            effective_time_blocks=20, block_days=7, directional_samples=100,
+            minimum_decision_bin=30, directional_ece=0.05,
+            probability_calibrated_on_past=True, purged_boundaries=True,
+            all_planned_assets_observed=True, per_asset_checks_passed=True,
+            forward_observation_coverage=1,
+            matured_outcome_coverage=1, calibration_windows=3,
+        ),
     )
 
 
@@ -95,7 +111,9 @@ def test_per_asset_validation_does_not_inherit_pooled_profit():
     assert pooled.mean_net_return > 0
     a = summarize_folds(data, "boosted", "1h", 3, 700, "A")
     b = summarize_folds(data, "boosted", "1h", 3, 700, "B")
-    assert a.positive_edge and not b.positive_edge
+    assert a.gates["positive_net_return"] and not b.gates["positive_net_return"]
+    assert not a.positive_edge and not b.positive_edge
+    assert "fresh_forward_promotion_v2" in a.failed_gates
     assert b.mean_net_return < 0
 
 

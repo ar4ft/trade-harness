@@ -25,6 +25,8 @@ The default reviewer is the shipped local LoRA adapter. Ollaya and other provide
 
 Start with the [architecture and decision lifecycle](docs/architecture.md) for model roles, request sequence, failure handling, paper accounts, offline tuning, language training and deployment diagrams. Configure reviewers in [orchestration](docs/orchestration.md), and interpret quality claims using [trading validation](docs/trading-validation.md).
 
+The [research workflow](docs/research-workflow.md) adds contextual reviewer training, complete consensus replay, causal feature/regime diagnostics, and locked forward paper evidence. Twelve bounded feature/parameter trials retain their full validation results. Historical results cannot promote a model under the strengthened acceptance criteria. The [measured results](reports/research-results.md) show that the contextual candidate still abstains and establishes no directional or trading improvement.
+
 ## Start
 
 Python 3.11+:

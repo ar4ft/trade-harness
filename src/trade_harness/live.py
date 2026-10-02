@@ -65,11 +65,33 @@ def run_live(
     poll_seconds=5,
     config=None,
     feed=None,
+    prospective_plan=None,
+    audit_output=None,
 ):
     if steps < 0 or poll_seconds < 1:
         raise ValueError("Steps must be nonnegative and polling interval at least one second")
+    if prospective_plan:
+        from .prospective import load_plan
+
+        run_id = f"forward-{load_plan(prospective_plan)['plan_sha256'][:12]}-{symbol}"
     store = Store(db)
     engine = PaperEngine(model, store, run_id, symbol, timeframe, config or RiskConfig())
+    journal, comparisons = None, {}
+    if prospective_plan:
+        from .models import BaselineModel
+        from .prospective import ForwardJournal
+
+        if not audit_output:
+            raise ValueError("Prospective paper runs require an audit output path")
+        journal = ForwardJournal(prospective_plan, audit_output, model, engine.config)
+        comparisons = {
+            "momentum": PaperEngine(BaselineModel(), store, run_id + "-momentum", symbol,
+                                    timeframe, engine.config),
+            "double_cost": PaperEngine(model, store, run_id + "-double-cost", symbol, timeframe,
+                                       engine.config.model_copy(update={
+                                           "fee_bps": engine.config.fee_bps * 2,
+                                           "slippage_bps": engine.config.slippage_bps * 2})),
+        }
     feed = feed or BinanceFeed()
     count = 0
     try:
@@ -77,6 +99,17 @@ def run_live(
             try:
                 market, quote, now = feed.fetch(symbol, timeframe, horizon)
                 result = engine.tick(market, quote, now)
+                if journal and result["status"] in ("processed", "already_processed"):
+                    comparison_results = {n: e.tick(market, quote, now)
+                                          for n, e in comparisons.items()}
+                    for name, paper in {"candidate": engine, **comparisons}.items():
+                        body = result if name == "candidate" else comparison_results[name]
+                        body["new_fills"] = [e for e in store.events(paper.run_id, 100)
+                                             if e["kind"] == "fill" and e["timestamp"] == now]
+                    if any(r["status"] not in ("processed", "already_processed")
+                           for r in comparison_results.values()):
+                        raise ValueError("Paired forward account failed; no complete observation")
+                    journal.append(market, quote, now, result, comparison_results)
                 print(json.dumps(result), flush=True)
             except (httpx.HTTPError, ValueError) as error:
                 # HTTP providers can include sensitive URL query values; publish stable error types only.

@@ -299,6 +299,21 @@ def evaluate_hybrid(paths, cache="artifacts/hybrid/forecasts.jsonl", stride=48, 
         }
     report["selected_candidate"] = min((n for n in candidates if n != "market_boosted_reference"),
                                        key=lambda n: report["candidates"][n]["mean_log_loss"])
+    if plans:
+        scores = {name: np.asarray([f["models"][name]["metrics"]["log_loss"]
+                                   for f in report["folds"]]) for name in plans}
+        winner = report["selected_candidate"]
+        # Paired fold differences show when a tiny winning score is within validation variation.
+        report["parameter_stability"] = {
+            "phase": "validation_only", "trial_count": len(plans),
+            "winner": winner, "comparisons": {
+                name: {"mean_log_loss_gap": float(np.mean(values - scores[winner])),
+                       "paired_fold_gap_std": float(np.std(values - scores[winner])),
+                       "recipe": plans[name]["features"]["recipe"],
+                       "parameters": plans[name]["parameters"]}
+                for name, values in scores.items()},
+            "interpretation": "Inspect neighboring settings and fold variation; no significance or edge claim. Fresh locked confirmation accounts for the complete search.",
+        }
     calibration_start = int(unique[int(development_end * 0.8)])
     train_mask = (data.timestamp < calibration_start) & (data.observed_at < calibration_start)
     cal_mask = (data.timestamp >= calibration_start) & (data.observed_at < test_start)

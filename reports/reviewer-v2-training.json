@@ -1,0 +1,529 @@
+{
+  "dataset_sha256": "1c06ee5a4fbdbf1dd13bb98b38ddca6a2e2f2d47492034a239e99098b1d8a575",
+  "samples_processed": 480,
+  "training_versions": {
+    "torch": "2.14.0+cpu",
+    "transformers": "4.57.6",
+    "peft": "0.21.1",
+    "datasets": "4.8.5",
+    "accelerate": "1.15.0"
+  },
+  "device": "CPU",
+  "version": 1,
+  "base_model": "HuggingFaceTB/SmolLM2-135M-Instruct",
+  "base_revision": "12fd25f77366fa6b3b4b768ec3050bf629380bac",
+  "symbols": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT"
+  ],
+  "symbol": null,
+  "timeframe": "1h",
+  "horizon": 3,
+  "trained_until": 1754549999999,
+  "class_returns": {
+    "BUY": 0.010845876311374457,
+    "SELL": -0.012213736069305764,
+    "HOLD": 0.00021035662531470375
+  },
+  "threshold": 0.003,
+  "label_source": "cost-aware position-dependent next-open outcomes; automatic labels, not human judgments",
+  "train_examples": 1452,
+  "steps": 120,
+  "seed": 42,
+  "stride": 8,
+  "training_metrics": {
+    "train_runtime": 1403.0851,
+    "train_samples_per_second": 0.342,
+    "train_steps_per_second": 0.086,
+    "total_flos": 235803950710272.0,
+    "train_loss": 0.39371523857116697,
+    "epoch": 0.3305785123966942
+  },
+  "feature_contract": "shared-evidence-v2",
+  "max_length": 1536,
+  "feature_names": [
+    "return_1",
+    "return_5",
+    "return_20",
+    "volatility_20",
+    "range_1",
+    "volume_ratio",
+    "sma_distance",
+    "rsi_scaled",
+    "macd_scaled",
+    "atr_scaled",
+    "return_3",
+    "return_10",
+    "volatility_5",
+    "body",
+    "upper_wick",
+    "lower_wick",
+    "volume_delta",
+    "rsi_delta_3",
+    "hour_sin",
+    "hour_cos",
+    "weekday_sin",
+    "weekday_cos",
+    "trend_direction",
+    "trend_strength",
+    "breakout_direction",
+    "breakout_strength",
+    "reversion_direction",
+    "reversion_strength",
+    "strategy_agreement",
+    "no_trade_strength",
+    "forecast_return",
+    "forecast_lower",
+    "forecast_upper",
+    "forecast_width",
+    "forecast_vs_momentum"
+  ],
+  "dataset_manifest": {
+    "schema_version": 1,
+    "prompt_contract": "shared-evidence-v2",
+    "label_contract": "next-open-horizon-close-cost-aware-long-cash-v1",
+    "source": "historical_automatic_labels",
+    "prospective": false,
+    "dataset_sha256": "1c06ee5a4fbdbf1dd13bb98b38ddca6a2e2f2d47492034a239e99098b1d8a575",
+    "forecast_contract": {
+      "schema_version": 1,
+      "datasets": [
+        {
+          "path": "data/markets/BTCUSDT-2024-1h.json",
+          "sha256": "19b6555a79bcbd7af2a9eaca7935389f14c5727468e9201242bd96dc1b9a0869",
+          "symbol": "BTCUSDT",
+          "candles": 8784
+        },
+        {
+          "path": "data/markets/BTCUSDT-2025-1h.json",
+          "sha256": "a1f059fd0bac2e7e15270b04cce72d6fac2d1cf58dc3d2090b286df54ac92039",
+          "symbol": "BTCUSDT",
+          "candles": 8760
+        },
+        {
+          "path": "data/markets/BTCUSDT-2026-1h.json",
+          "sha256": "7c245b305fe70ec3b5be7376846e5b0f581e9ffb6d2cb323c799513084bff687",
+          "symbol": "BTCUSDT",
+          "candles": 5832
+        },
+        {
+          "path": "data/markets/ETHUSDT-2024-1h.json",
+          "sha256": "499c058b9c56fa195cb17c317d8dd8ad9fe6137af044624821c80820e70ed2b3",
+          "symbol": "ETHUSDT",
+          "candles": 8784
+        },
+        {
+          "path": "data/markets/ETHUSDT-2025-1h.json",
+          "sha256": "6be82ba956e88dff6518887142f50a80e5ff8ad52f08ee5732e9c923d2e9ef3d",
+          "symbol": "ETHUSDT",
+          "candles": 8760
+        },
+        {
+          "path": "data/markets/ETHUSDT-2026-1h.json",
+          "sha256": "5a087e13931a269a51362799160c4849e51a2149dfce476bdfaf65f5e5d65713",
+          "symbol": "ETHUSDT",
+          "candles": 5832
+        },
+        {
+          "path": "data/markets/SOLUSDT-2024-1h.json",
+          "sha256": "4bd217cd9fb13ff3b5e1bcd41cf921feb0d373ac8beebfd1dd3eccc582b27c72",
+          "symbol": "SOLUSDT",
+          "candles": 8784
+        },
+        {
+          "path": "data/markets/SOLUSDT-2025-1h.json",
+          "sha256": "addafd5c093efac141ac5c758073e0f18e77367ee0885b14279319e26a6eaa48",
+          "symbol": "SOLUSDT",
+          "candles": 8760
+        },
+        {
+          "path": "data/markets/SOLUSDT-2026-1h.json",
+          "sha256": "6f0f48fc26090d0d3657fddf8687342d915a144b6b4123839bcc61a1a05635e3",
+          "symbol": "SOLUSDT",
+          "candles": 5832
+        }
+      ],
+      "stride": 48,
+      "context_length": 100,
+      "model_version": "timesfm3-43046b85ec22d584a13f8098c2ed39c889e129c2-ctx100-interval-policy-v1",
+      "strategy_version": "trend-breakout-reversion-v1",
+      "cache_sha256": "6a92fffbfa9ebdeb2ce2d2de9b85540905ab027b067394e4e7132d956a155362"
+    },
+    "risk_config": {
+      "initial_cash": 10000,
+      "fee_bps": 10,
+      "slippage_bps": 5,
+      "max_position_fraction": 0.2,
+      "risk_per_trade": 0.005,
+      "stop_atr_multiple": 2,
+      "min_stop_fraction": 0.01,
+      "max_stop_fraction": 0.08,
+      "reward_risk_ratio": 2,
+      "daily_loss_limit": 0.02,
+      "max_drawdown": 0.1,
+      "max_consecutive_losses": 3,
+      "cooldown_candles": 3,
+      "max_holding_candles": 3,
+      "min_confidence": 0.55,
+      "min_net_edge": 0.001,
+      "max_volatility": 0.08,
+      "max_candle_age_intervals": 1.5,
+      "max_quote_age_ms": 30000,
+      "max_entry_gap_fraction": 0.01,
+      "allow_research": false
+    },
+    "feature_config": {
+      "recipe": "base"
+    },
+    "timeframe": "1h",
+    "horizon": 3,
+    "symbols": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT"
+    ],
+    "boundaries": {
+      "calibration": 1746244799999,
+      "validation": 1754711999999,
+      "test": 1771473599999
+    },
+    "purged_snapshots": 0,
+    "feature_names": [
+      "return_1",
+      "return_5",
+      "return_20",
+      "volatility_20",
+      "range_1",
+      "volume_ratio",
+      "sma_distance",
+      "rsi_scaled",
+      "macd_scaled",
+      "atr_scaled",
+      "return_3",
+      "return_10",
+      "volatility_5",
+      "body",
+      "upper_wick",
+      "lower_wick",
+      "volume_delta",
+      "rsi_delta_3",
+      "hour_sin",
+      "hour_cos",
+      "weekday_sin",
+      "weekday_cos",
+      "trend_direction",
+      "trend_strength",
+      "breakout_direction",
+      "breakout_strength",
+      "reversion_direction",
+      "reversion_strength",
+      "strategy_agreement",
+      "no_trade_strength",
+      "forecast_return",
+      "forecast_lower",
+      "forecast_upper",
+      "forecast_width",
+      "forecast_vs_momentum"
+    ],
+    "partitions": {
+      "train": {
+        "examples": 1452,
+        "labels": {
+          "BUY": 206,
+          "HOLD": 1066,
+          "SELL": 180
+        }
+      },
+      "calibration": {
+        "examples": 294,
+        "labels": {
+          "HOLD": 220,
+          "SELL": 31,
+          "BUY": 43
+        }
+      },
+      "validation": {
+        "examples": 582,
+        "labels": {
+          "HOLD": 428,
+          "BUY": 68,
+          "SELL": 86
+        }
+      },
+      "test": {
+        "examples": 582,
+        "labels": {
+          "HOLD": 454,
+          "BUY": 74,
+          "SELL": 54
+        }
+      }
+    },
+    "limitations": [
+      "Future-return labels are automatic supervision, not expert judgments.",
+      "Labels estimate a horizon trade, not path-dependent stop/target profitability.",
+      "Flat and long views of one timestamp always share a partition.",
+      "Previous feedback follows a fixed trend hypothesis, not reviewer self-play.",
+      "Historical evidence; unknown foundation pretraining overlap."
+    ]
+  },
+  "label_contract": "next-open-horizon-close-cost-aware-long-cash-v1",
+  "fit_labels_last": 1746082799999,
+  "probability_calibration": {
+    "method": "temperature",
+    "temperature": 1.7089363989440256,
+    "samples": 48,
+    "first_timestamp": 1746244799999,
+    "labels_last": 1754549999999,
+    "raw_log_loss": 0.9000072929259003,
+    "calibrated_log_loss": 0.8057393132515344
+  },
+  "evaluation": {
+    "validation": {
+      "samples": 48,
+      "direction_accuracy": 0.7708333333333334,
+      "training_majority_baseline_accuracy": 0.7708333333333334,
+      "forecast_mae": 0.005991848292938674,
+      "zero_return_mae": 0.005721164107047716,
+      "predicted_counts": {
+        "HOLD": 48
+      },
+      "label_counts": {
+        "HOLD": 37,
+        "SELL": 9,
+        "BUY": 2
+      },
+      "first_timestamp": 1754711999999,
+      "last_timestamp": 1771300799999,
+      "probability_quality": {
+        "samples": 48,
+        "accuracy": 0.7708333333333334,
+        "log_loss": 0.7481155220978,
+        "brier": 0.404453272880324,
+        "expected_calibration_error": 0.08164149980253786,
+        "confidence_bins": [
+          {
+            "lower": 0.5,
+            "upper": 0.6000000000000001,
+            "samples": 4,
+            "mean_confidence": 0.5670229125124324,
+            "observed_accuracy": 1.0
+          },
+          {
+            "lower": 0.6000000000000001,
+            "upper": 0.7000000000000001,
+            "samples": 21,
+            "mean_confidence": 0.6667863780882788,
+            "observed_accuracy": 0.6666666666666666
+          },
+          {
+            "lower": 0.7000000000000001,
+            "upper": 0.8,
+            "samples": 23,
+            "mean_confidence": 0.7311143608383612,
+            "observed_accuracy": 0.8260869565217391
+          }
+        ],
+        "directional": {
+          "samples": 0,
+          "ece": null,
+          "minimum_populated_bin": 0,
+          "bins": []
+        },
+        "by_class": {
+          "BUY": {
+            "samples": 48,
+            "ece": 0.13826012633586518,
+            "minimum_populated_bin": 14,
+            "bins": [
+              {
+                "lower": 0.0,
+                "upper": 0.2,
+                "samples": 34,
+                "mean_score": 0.15679806886306732,
+                "observed_rate": 0.058823529411764705
+              },
+              {
+                "lower": 0.2,
+                "upper": 0.4,
+                "samples": 14,
+                "mean_score": 0.23609655162694568,
+                "observed_rate": 0.0
+              }
+            ]
+          },
+          "SELL": {
+            "samples": 48,
+            "ece": 0.05672337402723793,
+            "minimum_populated_bin": 48,
+            "bins": [
+              {
+                "lower": 0.0,
+                "upper": 0.2,
+                "samples": 48,
+                "mean_score": 0.13077662597276207,
+                "observed_rate": 0.1875
+              }
+            ]
+          },
+          "HOLD": {
+            "samples": 48,
+            "ece": 0.0815367523086272,
+            "minimum_populated_bin": 4,
+            "bins": [
+              {
+                "lower": 0.4,
+                "upper": 0.6000000000000001,
+                "samples": 4,
+                "mean_score": 0.5670229125124324,
+                "observed_rate": 1.0
+              },
+              {
+                "lower": 0.6000000000000001,
+                "upper": 0.8,
+                "samples": 44,
+                "mean_score": 0.7004123690712765,
+                "observed_rate": 0.75
+              }
+            ]
+          }
+        }
+      },
+      "training_prior_baseline": {
+        "probabilities": {
+          "BUY": 0.1418732782369146,
+          "SELL": 0.12396694214876033,
+          "HOLD": 0.7341597796143251
+        },
+        "log_loss": 0.7110283960004646,
+        "brier": 0.3843463750958116
+      },
+      "target_semantics": "Position-aware action; accuracy is not trading edge"
+    },
+    "test": {
+      "samples": 48,
+      "direction_accuracy": 0.7291666666666666,
+      "training_majority_baseline_accuracy": 0.7291666666666666,
+      "forecast_mae": 0.0064950319810178,
+      "zero_return_mae": 0.006492021942099797,
+      "predicted_counts": {
+        "HOLD": 48
+      },
+      "label_counts": {
+        "HOLD": 35,
+        "BUY": 7,
+        "SELL": 6
+      },
+      "first_timestamp": 1771473599999,
+      "last_timestamp": 1788062399999,
+      "probability_quality": {
+        "samples": 48,
+        "accuracy": 0.7291666666666666,
+        "log_loss": 0.8047246523971442,
+        "brier": 0.4518359132641014,
+        "expected_calibration_error": 0.09219872618099284,
+        "confidence_bins": [
+          {
+            "lower": 0.5,
+            "upper": 0.6000000000000001,
+            "samples": 4,
+            "mean_confidence": 0.5765029723246589,
+            "observed_accuracy": 1.0
+          },
+          {
+            "lower": 0.6000000000000001,
+            "upper": 0.7000000000000001,
+            "samples": 22,
+            "mean_confidence": 0.6614030533564134,
+            "observed_accuracy": 0.7272727272727273
+          },
+          {
+            "lower": 0.7000000000000001,
+            "upper": 0.8,
+            "samples": 22,
+            "mean_confidence": 0.7401099054466993,
+            "observed_accuracy": 0.6818181818181818
+          }
+        ],
+        "directional": {
+          "samples": 0,
+          "ece": null,
+          "minimum_populated_bin": 0,
+          "bins": []
+        },
+        "by_class": {
+          "BUY": {
+            "samples": 48,
+            "ece": 0.03519619676887156,
+            "minimum_populated_bin": 15,
+            "bins": [
+              {
+                "lower": 0.0,
+                "upper": 0.2,
+                "samples": 33,
+                "mean_score": 0.15624042166978164,
+                "observed_rate": 0.15151515151515152
+              },
+              {
+                "lower": 0.2,
+                "upper": 0.4,
+                "samples": 15,
+                "mean_score": 0.23556556865353606,
+                "observed_rate": 0.13333333333333333
+              }
+            ]
+          },
+          "SELL": {
+            "samples": 48,
+            "ece": 0.003568449419313474,
+            "minimum_populated_bin": 48,
+            "bins": [
+              {
+                "lower": 0.0,
+                "upper": 0.2,
+                "samples": 48,
+                "mean_score": 0.12856844941931347,
+                "observed_rate": 0.125
+              }
+            ]
+          },
+          "HOLD": {
+            "samples": 48,
+            "ece": 0.038764646188185106,
+            "minimum_populated_bin": 4,
+            "bins": [
+              {
+                "lower": 0.4,
+                "upper": 0.6000000000000001,
+                "samples": 4,
+                "mean_score": 0.5765029723246589,
+                "observed_rate": 1.0
+              },
+              {
+                "lower": 0.6000000000000001,
+                "upper": 0.8,
+                "samples": 44,
+                "mean_score": 0.7007564794015564,
+                "observed_rate": 0.7045454545454546
+              }
+            ]
+          }
+        }
+      },
+      "training_prior_baseline": {
+        "probabilities": {
+          "BUY": 0.1418732782369146,
+          "SELL": 0.12396694214876033,
+          "HOLD": 0.7341597796143251
+        },
+        "log_loss": 0.771087290129096,
+        "brier": 0.4314652915329098
+      },
+      "target_semantics": "Position-aware action; accuracy is not trading edge"
+    }
+  },
+  "candidate_status": "research_only: zero directional coverage on the sampled held-out evaluations",
+  "measured_adapter_version": "smollm2-cc7384b25761dcb7",
+  "interpretation": "120 CPU steps processed 480 examples (0.33 epoch). Both sampled held-out sets predict only HOLD; no directional improvement or profitable edge. Candidate is not activated."
+}

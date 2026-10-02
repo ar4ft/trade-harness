@@ -37,9 +37,22 @@ def main():
             "update",
             "serve",
             "validate",
+            "export-research",
+            "evaluate-research",
+            "lock-research",
+            "evaluate-forward",
         ],
     )
     parser.add_argument("--input")
+    parser.add_argument("--dataset", help="Immutable shared-evidence research JSONL")
+    parser.add_argument("--max-length", type=int, default=2048)
+    parser.add_argument("--base-revision")
+    parser.add_argument("--feature-recipe", choices=["base", "interactions", "quant"], default="base")
+    parser.add_argument("--max-decisions", type=int, default=0, help="Predeclare a bounded audit schedule; 0 uses all")
+    parser.add_argument("--reviewer-path", help="Candidate local reviewer adapter directory")
+    parser.add_argument("--prospective-plan", help="Immutable declaration for future paper observations")
+    parser.add_argument("--audit-output", help="Append-only forward paper journal JSONL")
+    parser.add_argument("--trial-count", type=int, default=1, help="Declare prior research trials when locking a policy")
     parser.add_argument("--output")
     parser.add_argument("--db", default=None)
     parser.add_argument("--symbol", default="BTCUSDT")
@@ -78,7 +91,7 @@ def main():
     parser.add_argument(
         "--research", action="store_true", help="Allow simulated entries for an unvalidated model"
     )
-    parser.add_argument("--folds", type=int, default=3)
+    parser.add_argument("--folds", type=int)
     updates = parser.add_mutually_exclusive_group()
     updates.add_argument(
         "--check", action="store_true", help="Verify and check for a release (default)"
@@ -117,6 +130,46 @@ def main():
 
         uvicorn.run("trade_harness.api:app", host=args.host, port=args.port)
         return
+    if args.command == "export-research":
+        from .research_data import export_research
+
+        paths = [str(p) for p in Path(args.data_dir).glob("*.json")
+                 if not p.name.endswith(".provenance.json")]
+        result = export_research(paths, args.forecast_cache,
+                                 args.output or "artifacts/research/examples.jsonl",
+                                 args.forecast_stride, args.forecast_context,
+                                 {"recipe": args.feature_recipe})
+        print(json.dumps(result, indent=2))
+        return
+    if args.command == "evaluate-forward":
+        from .prospective import summarize_forward
+
+        if not args.prospective_plan or not args.input:
+            parser.error("--prospective-plan and --input forward journal are required")
+        paths = [str(p) for p in Path(args.data_dir).glob("*.json")
+                 if not p.name.endswith(".provenance.json")]
+        result = summarize_forward(args.prospective_plan, args.input.split(","), paths,
+                                   args.output or "reports/forward-evaluation.json")
+        print(json.dumps({"promotion": result["promotion"],
+                          "matured_decisions": result["matured_decisions"]}, indent=2))
+        return
+    if args.command in ("evaluate-research", "lock-research"):
+        from .research_evaluation import evaluate_research, lock_research
+
+        if not args.dataset:
+            parser.error("--dataset is required")
+        reviewers = [v.strip() for v in (args.reviewers or "local-llm").split(",")]
+        if args.reviewer_path:
+            os.environ["TRADING_LORA_PATH"] = args.reviewer_path
+        if args.command == "evaluate-research":
+            evaluate_research(args.dataset, reviewers, args.output or "reports/research-evaluation.json",
+                              folds=args.folds if args.folds is not None else 5,
+                              max_decisions=args.max_decisions)
+        else:
+            result = lock_research(args.dataset, reviewers,
+                                   args.output or "artifacts/research/prospective-plan.json", args.trial_count)
+            print(json.dumps(result, indent=2))
+        return
     if args.command == "validate":
         from .learning import DecisionModel
         from .validation import validation_report
@@ -139,7 +192,7 @@ def main():
                  if not p.name.endswith(".provenance.json")]
         tune_hybrid(
             paths, cache=args.forecast_cache, stride=args.forecast_stride,
-            context=args.forecast_context, folds=args.folds,
+            context=args.forecast_context, folds=args.folds if args.folds is not None else 3,
             output=args.output or "reports/parameter-experiments.json",
             model_output=args.model_output or str(Path(__file__).parent / "assets/tuned_hybrid_model.json"),
             trials=json.loads(Path(args.trial_plan).read_text()) if args.trial_plan else None,
@@ -152,7 +205,7 @@ def main():
                  if not p.name.endswith(".provenance.json")]
         evaluate_hybrid(
             paths, cache=args.forecast_cache, stride=args.forecast_stride,
-            context=args.forecast_context, folds=args.folds,
+            context=args.forecast_context, folds=args.folds if args.folds is not None else 3,
             output=args.output or "reports/hybrid-comparison.json",
             model_output=args.model_output or str(Path(__file__).parent / "assets/hybrid_model.json"),
         )
@@ -165,7 +218,8 @@ def main():
             for p in Path(args.data_dir).glob("*.json")
             if not p.name.endswith(".provenance.json")
         ]
-        evaluate(paths, args.output or "reports/walk-forward.json", folds=args.folds)
+        evaluate(paths, args.output or "reports/walk-forward.json",
+                 folds=args.folds if args.folds is not None else 3)
         return
     elif args.command == "paper":
         from .live import load_risk_config, run_live
@@ -180,6 +234,8 @@ def main():
             steps=args.paper_steps if args.paper_steps is not None else 1,
             poll_seconds=args.poll_seconds,
             config=load_risk_config(args.risk_config, args.research),
+            prospective_plan=args.prospective_plan,
+            audit_output=args.audit_output,
         )
     elif args.command == "status":
         store = Store(args.db)
@@ -237,7 +293,10 @@ def main():
                 str(args.eval_samples),
                 "--base-model",
                 args.base_model,
+                "--max-length", str(args.max_length),
             ]
+            + (["--dataset", args.dataset] if args.dataset else [])
+            + (["--base-revision", args.base_revision] if args.base_revision else [])
         )
         return
     elif args.command == "export-finetuning":

@@ -1,3 +1,7 @@
+# 0.8.0 (development)
+
+Adds a shared-evidence reviewer training contract with position-aware cost labels and separate chronological calibration. Adds full numerical/reviewer consensus ablations through matched paper accounts, row-level audit ledgers, decision-band and regime diagnostics, causal quant features, and twelve bounded parameter trials. Legacy historical gates now require matching `research-promotion-v2` evidence before promotion. Locked forward declarations and hash-chained paper journals preserve model/code/risk identities and attach outcomes only after capture. No artifact activation or exchange execution is automatic. Release signing remains restricted to manual workflow dispatch. See the [research workflow](research-workflow.md).
+
 # 0.7.0 (development)
 
 Adds Ollaya native typed decision review as an optional layer before consensus or a standalone research backend. Records model manifest provenance, validates probability rounding and rejects truncation/routing changes. TimesFM, numerical confirmation, risk and manual-only release signing remain owned by the harness. No trading edge or trading fine-tuning is claimed. See [Ollaya setup](ollaya.md).

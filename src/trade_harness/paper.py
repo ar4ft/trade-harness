@@ -173,7 +173,7 @@ class PaperEngine:
                 self.store.feedback(
                     Feedback(
                         decision_id=old["id"],
-                        realized_return=market.ohlc[end][3] / market.ohlc[start][3] - 1,
+                        realized_return=market.ohlc[end][3] / market.ohlc[start + 1][0] - 1,
                         observed_at=market.timestamps[end],
                     )
                 )
@@ -256,7 +256,7 @@ class PaperEngine:
                 "decision": decision.model_dump() if decision else None,
             }
 
-    def replay(self, view, bar):
+    def replay(self, view, bar, generate_signal=True):
         """Replay one completed bar; previous signal fills at this bar's open."""
         with self.store.transaction():
             account = self.account
@@ -302,8 +302,21 @@ class PaperEngine:
             view = ensure_indicators(
                 view.model_copy(update={"position": "long" if account.units else "flat"})
             )
-            decision = self.harness.decide(view, account=account)
-            account.pending = self._order(decision, close)
+            if generate_signal:
+                decision = self.harness.decide(view, account=account)
+                account.pending = self._order(decision, close)
+            else:
+                from .risk import evaluate
+
+                # Intervening bars manage risk without polluting the model's decision history.
+                dummy = Proposal(action="HOLD", confidence=0, rationale="Unscheduled risk check",
+                                 forecast=Forecast(horizon=view.horizon, expected_return=0,
+                                                   projected_close=close, method="risk_only"))
+                plan = evaluate(view, dummy, account, self.config, close)
+                decision = None
+                account.pending = ({"action": "SELL", "decision_id": f"risk-{self.run_id}-{timestamp}",
+                                    "reason": ",".join(plan.reason_codes), "signal_at": timestamp,
+                                    "reference_price": close} if plan.forced_exit else None)
             account.last_signal_at = timestamp
             value = self._mark(account, close, timestamp)
             self._event(
@@ -321,7 +334,7 @@ class PaperEngine:
             return {
                 "status": "processed",
                 "equity": value,
-                "decision": decision.model_dump(),
+                "decision": decision.model_dump() if decision else None,
                 "account": account.model_dump(),
             }
 

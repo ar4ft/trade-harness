@@ -10,7 +10,7 @@ The default orchestrator has no independent walk-forward edge evidence and remai
 
 The trainer uses chronological, shared cross-asset boundaries. Features and normalization use available history; labels crossing fit/calibration/validation boundaries are purged. Validation folds do not overlap. The final 20% cannot choose the model, thresholds, or validation status.
 
-The `walk-forward-edge-v1` policy requires all of:
+The legacy `walk-forward-edge-v1` measurements require all of:
 
 - At least three purged walk-forward folds.
 - Positive mean simulated account return after modeled fees and slippage.
@@ -21,7 +21,9 @@ The `walk-forward-edge-v1` policy requires all of:
 - A positive lower bound for a descriptive 95% bootstrap interval over fold mean returns.
 - Evidence that fit/calibration/validation boundaries are purged and the final test is excluded.
 
-The doubled-cost replay reruns sizing, costs, stops, and eligibility at the higher costs; it is not a subtraction from a headline return. Every asset has separate return, probability-quality, count, stress, and interval checks. A positive pooled average cannot certify an asset with negative returns. The pooled model and the requested asset must pass before its proposal receives `validation_status: validated`.
+These historical measurements are insufficient for promotion. Version 0.8 adds mandatory `research-promotion-v2` forward evidence: a policy locked before new observations, five completed chronological windows, 100 closed trades, sufficient directional/calibration-bin observations, positive paired time-block intervals against cash and momentum, doubled-cost survival, and coverage/per-asset checks. Heuristic consensus confidence is not calibrated probability. See the [complete workflow and acceptance criteria](research-workflow.md).
+
+The doubled-cost replay reruns sizing, costs, stops, and eligibility at the higher costs; it is not a subtraction from a headline return. Every asset has separate return, probability-quality, count, stress, and interval checks. A positive pooled average cannot certify an asset with negative returns. Historical evidence without accepted, matching forward promotion evidence remains research-only. Neither pipeline activates artifacts automatically.
 
 Evidence comes from the configured backend's measured artifact through `validation_for(symbol)`. An LLM's generated JSON claiming validation is ignored. Unknown, missing, inconsistent, or out-of-contract evidence cannot promote a recommendation. A high probability score alone is insufficient.
 

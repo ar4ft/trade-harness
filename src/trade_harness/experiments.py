@@ -8,7 +8,7 @@ def default_trials():
         {"name": f"{recipe}_c{str(c).replace('.', '_')}_a{alpha}",
          "features": {"recipe": recipe},
          "parameters": {"logistic_c": c, "ridge_alpha": alpha}}
-        for recipe in ("base", "interactions") for c in (0.1, 0.5) for alpha in (10, 100)
+        for recipe in ("base", "interactions", "quant") for c in (0.1, 0.5) for alpha in (10, 100)
     ]
 
 

@@ -113,6 +113,8 @@ class Orchestrator:
         base = dict(member=backend, model_version=getattr(model, "version", None),
                     evidence_mode="extended_prompt_untrained" if backend in ("local-llm", "llamafile")
                     else "structured_shared_evidence", evidence_sha256=evidence_hash)
+        if getattr(model, "metadata", {}).get("feature_contract") == "shared-evidence-v2":
+            base["evidence_mode"] = "trained_shared_evidence"
         if model is None:
             return ModelVote(**base, status="unavailable")
         try:

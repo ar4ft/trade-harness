@@ -16,12 +16,16 @@ INTERACTION_FEATURES = [
     "forecast_per_volatility", "uncertainty_per_atr", "forecast_trend_alignment",
     "breakout_volume_interaction",
 ]
+QUANT_FEATURES = [
+    "short_long_volatility_ratio", "momentum_per_volatility", "range_per_atr",
+    "candle_body_fraction", "trend_regime", "high_volatility_regime",
+]
 FEATURE_RECIPE_VERSION = "causal-recipes-v1"
 
 
 class FeatureConfig(StrictModel):
     version: Literal["causal-recipes-v1"] = FEATURE_RECIPE_VERSION
-    recipe: Literal["base", "interactions"] = "base"
+    recipe: Literal["base", "interactions", "quant"] = "base"
 
 
 class FitParameters(StrictModel):
@@ -31,7 +35,9 @@ class FitParameters(StrictModel):
 
 def feature_names(config):
     config = FeatureConfig.model_validate(config)
-    return BASE_FEATURES + (INTERACTION_FEATURES if config.recipe == "interactions" else [])
+    extra = {"base": [], "interactions": INTERACTION_FEATURES,
+             "quant": INTERACTION_FEATURES + QUANT_FEATURES}
+    return BASE_FEATURES + extra[config.recipe]
 
 
 def transform_features(x, config):
@@ -48,4 +54,14 @@ def transform_features(x, config):
         column["forecast_return"] * column["trend_direction"],
         column["breakout_direction"] * np.clip(column["volume_ratio"], 0, 10),
     ], axis=-1)
+    if config.recipe == "quant":
+        quant = np.stack([
+            np.clip(column["volatility_5"] / np.maximum(column["volatility_20"], 1e-5), 0, 10),
+            np.clip(column["return_20"] / np.maximum(column["volatility_20"], 1e-5), -20, 20),
+            np.clip(column["range_1"] / np.maximum(column["atr_scaled"], 1e-5), 0, 20),
+            np.clip(column["body"] / np.maximum(column["range_1"], 1e-5), -1, 1),
+            np.sign(column["return_20"]) * (np.abs(column["return_20"]) > 0.01),
+            (column["volatility_20"] > 0.015).astype(float),
+        ], axis=-1)
+        extra = np.concatenate([extra, quant], axis=-1)
     return np.concatenate([x, extra], axis=-1)
