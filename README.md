@@ -83,6 +83,16 @@ trade-harness decide --reviewers local-llm,ollaya
 
 Run `ollaya serve` separately first. The adapter preserves shared evidence, records the manifest digest, and rejects truncated input. The default Ollaya model is `decision:latest`; this remains an unvalidated trading reviewer. See [setup and score semantics](docs/ollaya.md).
 
+Cloudflare [Clef and Clef-Flash](docs/clef.md) are native typed decision reviewers:
+
+```bash
+# Configure Cloudflare credentials or a pinned CLEF_BASE_URL service first.
+trade-harness decide --reviewers clef
+trade-harness decide --reviewers clef-flash
+```
+
+They review the same causal evidence and retain advisory evidence/risk scores. Hosted and self-hosted adapters use the native SystemOne API. Native training-example export is available; trading scores remain uncalibrated and no Clef edge has been established.
+
 ## TimesFM 3.0 forecasts
 
 Optional pretrained research forecasting with OHLC channels, past-only volume/indicators, and horizon quantile ranges:

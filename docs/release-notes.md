@@ -1,3 +1,7 @@
+# 0.9.0 (development)
+
+Adds Clef and Clef-Flash native typed reviewers through Cloudflare Workers AI or a pinned self-hosted GPU service. Adds native request/target exports using causal position/cost labels. Verifies typed outputs, ordinal rounding, context budgets and snapshot/service identity; hosted aliases cannot certify locked forward experiments. No Clef inference/trading edge is claimed and the default reviewer remains unchanged. Manual-only signing is preserved. See [Clef setup and evaluation](clef.md).
+
 # 0.8.0 (development)
 
 Adds a shared-evidence reviewer training contract with position-aware cost labels and separate chronological calibration. Adds full numerical/reviewer consensus ablations through matched paper accounts, row-level audit ledgers, decision-band and regime diagnostics, causal quant features, and twelve bounded parameter trials. Legacy historical gates now require matching `research-promotion-v2` evidence before promotion. Locked forward declarations and hash-chained paper journals preserve model/code/risk identities and attach outcomes only after capture. No artifact activation or exchange execution is automatic. Release signing remains restricted to manual workflow dispatch. See the [research workflow](research-workflow.md).

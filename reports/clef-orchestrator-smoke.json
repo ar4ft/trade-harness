@@ -1,0 +1,309 @@
+{
+  "action": "HOLD",
+  "confidence": 0.3748686942984993,
+  "rationale": "Numerical proposal HOLD; 2/2 members agree. Vote agreement is not a calibrated probability or proof of edge. Confirmation accepted.",
+  "forecast": {
+    "horizon": 3,
+    "expected_return": -0.0003829196130929679,
+    "projected_close": 78551.19968283684,
+    "method": "trained return regression"
+  },
+  "probabilities": null,
+  "probability_calibration": "uncalibrated",
+  "validation_status": "research_only",
+  "model_version": "8ec36d2039f10dbd",
+  "forecast_interval": [
+    -0.013854698885332991,
+    0.009950522573140254
+  ],
+  "trading_validation": {
+    "policy_version": "walk-forward-edge-v1",
+    "method": "purged_walk_forward_paper_replay",
+    "symbol": "BTCUSDT",
+    "timeframe": "1h",
+    "horizon": 3,
+    "model_version": "8ec36d2039f10dbd",
+    "fold_count": 0,
+    "closed_trades": 0,
+    "positive_folds": 0,
+    "mean_net_return": null,
+    "mean_momentum_return": null,
+    "mean_cost_stressed_return": null,
+    "mean_return_interval": null,
+    "brier_improvement": null,
+    "purged_boundaries": false,
+    "evaluated_until": null,
+    "final_test_start": null,
+    "gates": {
+      "at_least_three_folds": false,
+      "positive_net_return": false,
+      "at_least_20_closed_trades": false,
+      "two_positive_folds": false,
+      "brier_better_than_prior": false,
+      "beats_momentum_after_costs": false,
+      "positive_with_double_costs": false,
+      "positive_interval_lower_bound": false,
+      "purged_chronological_boundaries": false,
+      "final_test_excluded": false,
+      "fresh_forward_promotion_v2": false
+    },
+    "failed_gates": [
+      "at_least_three_folds",
+      "positive_net_return",
+      "at_least_20_closed_trades",
+      "two_positive_folds",
+      "brier_better_than_prior",
+      "beats_momentum_after_costs",
+      "positive_with_double_costs",
+      "positive_interval_lower_bound",
+      "purged_chronological_boundaries",
+      "final_test_excluded",
+      "fresh_forward_promotion_v2"
+    ],
+    "positive_edge": false,
+    "promotion": null,
+    "status": "unknown"
+  },
+  "strategy_signals": [
+    {
+      "name": "trend",
+      "action": "BUY",
+      "strength": 0.3534871781483521,
+      "expected_return": 0.0015906923016675845,
+      "invalidation_price": 77678.64876537179,
+      "holding_horizon": 3,
+      "reason": "20-candle momentum beyond \u00b11%; exit hypothesis at two ATR."
+    },
+    {
+      "name": "breakout",
+      "action": "HOLD",
+      "strength": 0.0,
+      "expected_return": 0.0,
+      "invalidation_price": 78581.29,
+      "holding_horizon": 3,
+      "reason": "Close exceeds prior 20-candle high/low, excluding current candle."
+    },
+    {
+      "name": "mean_reversion",
+      "action": "HOLD",
+      "strength": 0.0,
+      "expected_return": 0.0,
+      "invalidation_price": 78581.29,
+      "holding_horizon": 3,
+      "reason": "Deviation beyond \u00b11.5 standard deviations with confirming RSI."
+    },
+    {
+      "name": "no_trade",
+      "action": "HOLD",
+      "strength": 0.0,
+      "expected_return": 0.0,
+      "invalidation_price": 78581.29,
+      "holding_horizon": 3,
+      "reason": "Abstain when directional hypotheses conflict, none activate, or volatility exceeds 4%."
+    }
+  ],
+  "forecast_evidence": {
+    "source": "timesfm-3.0-research-v1",
+    "model_version": "timesfm3-43046b85ec22d584a13f8098c2ed39c889e129c2-ctx100-interval-policy-v1",
+    "as_of": 1788220799999,
+    "horizon": 3,
+    "expected_return": -0.0006153182265141721,
+    "return_interval": [
+      -0.007640089962890562,
+      0.00612421942296959
+    ],
+    "uncertainty_calibrated": false
+  },
+  "feature_evidence": {
+    "return_1": -0.0001509037365216015,
+    "return_5": -0.005501543991090485,
+    "return_20": 0.010604615344450563,
+    "volatility_20": 0.003345436106784814,
+    "range_1": 0.002400062406712919,
+    "volume_ratio": 0.5716934358113505,
+    "sma_distance": -0.0014300859657558895,
+    "rsi_scaled": 0.5160719138361061,
+    "macd_scaled": 0.0017753286015576666,
+    "atr_scaled": 0.00574335974013791,
+    "return_3": -0.0035938756899156488,
+    "return_10": 0.009168151134897329,
+    "volatility_5": 0.002003031298682098,
+    "body": -0.0001509265118961598,
+    "upper_wick": 5.85381074816159e-06,
+    "lower_wick": 0.0022432820840685977,
+    "volume_delta": 0.08760360994974392,
+    "rsi_delta_3": -0.06526984991104506,
+    "hour_sin": -0.004363309284746544,
+    "hour_cos": 0.9999904807207345,
+    "weekday_sin": 0.0,
+    "weekday_cos": 1.0,
+    "trend_direction": 1.0,
+    "trend_strength": 0.3534871781483521,
+    "breakout_direction": 0.0,
+    "breakout_strength": 0.0,
+    "reversion_direction": 0.0,
+    "reversion_strength": 0.0,
+    "strategy_agreement": 0.3333333333333333,
+    "no_trade_strength": 0.0,
+    "forecast_return": -0.0006153182265141721,
+    "forecast_lower": -0.007640089962890562,
+    "forecast_upper": 0.00612421942296959,
+    "forecast_width": 0.013764309385860152,
+    "forecast_vs_momentum": 0.004886225764576313
+  },
+  "consensus": {
+    "policy": "primary-confirmation-v1",
+    "configured_members": 2,
+    "valid_members": 2,
+    "supporting_members": 2,
+    "agreement_fraction": 1.0,
+    "required_fraction": 1.0,
+    "accepted": true,
+    "reason_codes": [],
+    "votes": [
+      {
+        "member": "numerical",
+        "model_version": "fce8e0a60b433450",
+        "status": "ok",
+        "action": "HOLD",
+        "confidence": 0.3748686942984993,
+        "probabilities": {
+          "BUY": 0.30097823569285387,
+          "SELL": 0.32415307000864674,
+          "HOLD": 0.3748686942984993
+        },
+        "calibration": "temperature fitted on chronological calibration data",
+        "evidence_mode": "trained_features",
+        "evidence_sha256": "5962231c08b75de89f12c6c3b7bea7c1f1c3ef6df1e618acc84ab825d644e0e9",
+        "review_details": {}
+      },
+      {
+        "member": "clef-flash",
+        "model_version": "clef-flash-40d58388ac8a8413",
+        "status": "ok",
+        "action": "HOLD",
+        "confidence": 0.7736,
+        "probabilities": {
+          "BUY": 0.1948,
+          "SELL": 0.0316,
+          "HOLD": 0.7736
+        },
+        "calibration": "uncalibrated",
+        "evidence_mode": "structured_shared_evidence",
+        "evidence_sha256": "5962231c08b75de89f12c6c3b7bea7c1f1c3ef6df1e618acc84ab825d644e0e9",
+        "review_details": {
+          "provider": "self-hosted",
+          "model": "clef-flash",
+          "weights_pinned": true,
+          "manifest": {
+            "model": "clef-flash",
+            "repository": "Cloudflare/clef-flash",
+            "revision": "17f0b0ad64efb65d273590632833508766b2aae6",
+            "contract": "clef-systemone-no-truncation-v1",
+            "input_truncation": "reject",
+            "max_length": 16384,
+            "server_sha256": "283bcc40ec6efe2b50c8413589cdde8800bc958a34c0ce77613909a13f1e89e0",
+            "runtime": {
+              "torch": "2.11.0+cpu",
+              "transformers": "5.10.2",
+              "bitsandbytes": "0.50.2"
+            },
+            "quantization": "nf4",
+            "device": "cpu",
+            "threads": 4
+          },
+          "evidence_sufficient": 0.0879,
+          "risk_level": {
+            "type": "score",
+            "score": 1.035096490350965,
+            "probabilities": {
+              "0": 0.19198080191980801,
+              "1": 0.6173382661733826,
+              "2": 0.15428457154284572,
+              "3": 0.036396360363963605
+            },
+            "source": "clef-flash"
+          },
+          "request_sha256": "825e4132c271a3d97f0cb0182db7b08a57052aa97d6eb95147fa67f16df231db",
+          "input_context_candles": 21,
+          "score_semantics": "per-option probabilities; uncalibrated for trading",
+          "usage": {
+            "input_tokens": 4596,
+            "output_tokens": 0
+          }
+        }
+      }
+    ],
+    "is_calibrated_probability": false
+  },
+  "review_details": {},
+  "mode": "decision_only",
+  "real_execution_enabled": false,
+  "id": "36119dac-e5aa-437d-a4a8-9693ff89ddfb",
+  "symbol": "BTCUSDT",
+  "timeframe": "1h",
+  "as_of": 1788220799999,
+  "backend": "shared-evidence-consensus-v1",
+  "guardrails": [
+    "low_confidence"
+  ],
+  "proposed_action": "HOLD",
+  "execution": {
+    "action": "HOLD",
+    "notional": 0,
+    "units": 0,
+    "stop_loss": null,
+    "take_profit": null,
+    "reason_codes": [
+      "low_confidence"
+    ],
+    "net_expected_return": -0.0033829196130929677,
+    "forced_exit": false
+  },
+  "fields": {
+    "execution": {
+      "type": "choice",
+      "choice": "HOLD",
+      "probabilities": {
+        "BUY": 0.0,
+        "SELL": 0.0,
+        "HOLD": 1.0
+      },
+      "source": "risk_policy",
+      "calibrated": false
+    },
+    "risk_allowed": {
+      "type": "noul",
+      "noul": 0.0,
+      "source": "risk_policy",
+      "calibrated": false
+    },
+    "data_valid": {
+      "type": "noul",
+      "noul": 1.0,
+      "source": "input_checks",
+      "calibrated": false
+    },
+    "risk_level": {
+      "type": "score",
+      "score": 0.0,
+      "probabilities": {
+        "LOW": 1.0,
+        "MEDIUM": 0.0,
+        "HIGH": 0.0
+      },
+      "source": "realized_volatility_rule"
+    },
+    "regime": {
+      "type": "choice",
+      "choice": "UPTREND",
+      "probabilities": {
+        "UPTREND": 1.0,
+        "DOWNTREND": 0.0,
+        "SIDEWAYS": 0.0
+      },
+      "source": "20_candle_momentum_rule",
+      "calibrated": false
+    }
+  }
+}

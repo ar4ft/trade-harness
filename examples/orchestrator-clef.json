@@ -1,0 +1,5 @@
+{
+  "reviewers": ["clef"],
+  "agreement_fraction": 1.0,
+  "minimum_review_confidence": 0.55
+}

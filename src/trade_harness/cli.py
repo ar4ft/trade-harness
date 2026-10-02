@@ -38,6 +38,7 @@ def main():
             "serve",
             "validate",
             "export-research",
+            "export-clef",
             "evaluate-research",
             "lock-research",
             "evaluate-forward",
@@ -67,7 +68,7 @@ def main():
     parser.add_argument("--position", choices=["flat", "long"])
     parser.add_argument(
         "--backend",
-        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "ollaya", "llamafile", "timesfm", "hybrid", "strategy", "orchestrator"],
+        choices=["decision", "baseline", "trained", "local-llm", "llm", "nimble", "ollaya", "clef", "clef-flash", "llamafile", "timesfm", "hybrid", "strategy", "orchestrator"],
     )
     parser.add_argument("--data-dir", default="data/markets")
     parser.add_argument("--forecast-cache", default="artifacts/hybrid/forecasts.jsonl")
@@ -139,6 +140,17 @@ def main():
                                  args.output or "artifacts/research/examples.jsonl",
                                  args.forecast_stride, args.forecast_context,
                                  {"recipe": args.feature_recipe})
+        print(json.dumps(result, indent=2))
+        return
+    if args.command == "export-clef":
+        from .clef import export_clef
+
+        if not args.dataset:
+            parser.error("--dataset is required")
+        if args.backend not in (None, "clef", "clef-flash"):
+            parser.error("Use --backend clef or clef-flash for native exports")
+        result = export_clef(args.dataset, args.output or "artifacts/research/clef-examples.jsonl",
+                             args.backend or "clef")
         print(json.dumps(result, indent=2))
         return
     if args.command == "evaluate-forward":

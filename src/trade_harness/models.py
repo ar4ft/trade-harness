@@ -159,6 +159,10 @@ def load_model(backend=None):
         from .ollaya import OllayaModel
 
         return OllayaModel()
+    if backend in ("clef", "clef-flash"):
+        from .clef import ClefModel
+
+        return ClefModel(backend)
     if backend == "nimble":
         from .nimble import NimbleModel
 

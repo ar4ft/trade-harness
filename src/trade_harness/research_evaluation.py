@@ -288,6 +288,8 @@ def lock_research(dataset, reviewer_names, output, trial_count=1):
         raise ValueError("Declare the complete number of prior research trials")
     primary = load_model("hybrid")
     reviewers = {name: load_model(name) for name in reviewer_names}
+    if any(getattr(m, "supports_locked_forward", True) is False for m in reviewers.values()):
+        raise ValueError("Forward reviewers must pin weights; mutable hosted aliases cannot certify a locked experiment")
     if primary.feature_names != manifest["feature_names"]:
         raise ValueError("Locked numerical features differ from the research dataset")
     if any(not isinstance(getattr(m, "version", None), str) for m in reviewers.values()):

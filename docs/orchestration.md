@@ -87,7 +87,7 @@ flowchart LR
     Artifact --> Explicit["Explicit model path and new paper run"]
 ```
 
-Two allowlisted, versioned recipes are available: the original 35-feature contract and four added interactions (forecast relative to volatility, uncertainty relative to ATR, forecast/trend alignment, and breakout/volume interaction). Ratios are bounded; no arbitrary generated Python is executed. Transformations are causal and identical during training and runtime. Standardization is fitted only on the training partition.
+Three allowlisted, versioned recipes are available: the original 35-feature contract, four added interactions, and six additional causal quant features. See the [research workflow](research-workflow.md) for all feature definitions. Ratios are bounded; no arbitrary generated Python is executed. Transformations are causal and identical during training and runtime. Standardization is fitted only on the training partition.
 
 The default twelve trials vary three recipes (base/interactions/quant), logistic regularization C (0.1/0.5), and Ridge regularization alpha (10/100). A custom `--trial-plan` accepts a JSON list with `name`, `features`, and `parameters`; two to sixteen trials are allowed. Names, recipe versions, and numeric parameter bounds are validated. This tunes the numerical decision layer, not TimesFM/LLM weights or live risk limits. The [contextual research workflow](research-workflow.md) adds reviewer training, five-fold complete-policy replay, decision-band/regime diagnostics, and fresh forward acceptance.
 

@@ -1,0 +1,104 @@
+{
+  "mode": "real_self_hosted_smoke_only",
+  "model_manifest": {
+    "model": "clef-flash",
+    "repository": "Cloudflare/clef-flash",
+    "revision": "17f0b0ad64efb65d273590632833508766b2aae6",
+    "contract": "clef-systemone-no-truncation-v1",
+    "input_truncation": "reject",
+    "max_length": 16384,
+    "server_sha256": "283bcc40ec6efe2b50c8413589cdde8800bc958a34c0ce77613909a13f1e89e0",
+    "runtime": {
+      "torch": "2.11.0+cpu",
+      "transformers": "5.10.2",
+      "bitsandbytes": "0.50.2"
+    },
+    "quantization": "nf4",
+    "device": "cpu",
+    "threads": 4
+  },
+  "snapshot": {
+    "symbol": "BTCUSDT",
+    "as_of": 1788062399999,
+    "phase": "test"
+  },
+  "label_used_for_inference": false,
+  "original_market_candles": 100,
+  "declared_raw_context_candles": 21,
+  "latency_seconds": 179.34923924901523,
+  "proposal": {
+    "action": "HOLD",
+    "confidence": 0.9406,
+    "rationale": "clef-flash native typed research review. Evidence and risk scores are advisory; numerical forecast and deterministic risk checks remain separate.",
+    "forecast": {
+      "horizon": 3,
+      "expected_return": 0.00021774115013339923,
+      "projected_close": 78161.6953125,
+      "method": "timesfm-3.0-research-v1"
+    },
+    "probabilities": {
+      "BUY": 0.0397,
+      "SELL": 0.0197,
+      "HOLD": 0.9406
+    },
+    "probability_calibration": "uncalibrated",
+    "validation_status": "research_only",
+    "model_version": "clef-flash-40d58388ac8a8413",
+    "forecast_interval": [
+      -0.0025168699903818093,
+      0.003397740095679058
+    ],
+    "trading_validation": null,
+    "strategy_signals": [],
+    "forecast_evidence": null,
+    "feature_evidence": {},
+    "consensus": null,
+    "review_details": {
+      "provider": "self-hosted",
+      "model": "clef-flash",
+      "weights_pinned": true,
+      "manifest": {
+        "model": "clef-flash",
+        "repository": "Cloudflare/clef-flash",
+        "revision": "17f0b0ad64efb65d273590632833508766b2aae6",
+        "contract": "clef-systemone-no-truncation-v1",
+        "input_truncation": "reject",
+        "max_length": 16384,
+        "server_sha256": "283bcc40ec6efe2b50c8413589cdde8800bc958a34c0ce77613909a13f1e89e0",
+        "runtime": {
+          "torch": "2.11.0+cpu",
+          "transformers": "5.10.2",
+          "bitsandbytes": "0.50.2"
+        },
+        "quantization": "nf4",
+        "device": "cpu",
+        "threads": 4
+      },
+      "evidence_sufficient": 0.0418,
+      "risk_level": {
+        "type": "score",
+        "score": 1.03,
+        "probabilities": {
+          "0": 0.3767,
+          "1": 0.3075,
+          "2": 0.2249,
+          "3": 0.0909
+        },
+        "source": "clef-flash"
+      },
+      "request_sha256": "4d0ff305eb0c015707f8e1e744576303760206df12bf054f8bdd875edd460189",
+      "input_context_candles": 21,
+      "score_semantics": "per-option probabilities; uncalibrated for trading",
+      "usage": {
+        "input_tokens": 4595,
+        "output_tokens": 0
+      }
+    }
+  },
+  "limits": "One historical request; no trading accuracy, probability calibration, edge or future chronology claim.",
+  "observed_service_memory": {
+    "VmHWM": "11151164 kB",
+    "VmRSS": "8670148 kB"
+  },
+  "memory_limits": "16 GiB cgroup; these are process measurements, not minimum hardware guarantees."
+}

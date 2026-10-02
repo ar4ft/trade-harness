@@ -15,7 +15,7 @@ from .schemas import ConsensusEvidence, ModelVote, Proposal, StrictModel
 
 
 class OrchestratorConfig(StrictModel):
-    reviewers: list[Literal["local-llm", "llamafile", "llm", "nimble", "ollaya"]] = Field(
+    reviewers: list[Literal["local-llm", "llamafile", "llm", "nimble", "ollaya", "clef", "clef-flash"]] = Field(
         default_factory=lambda: ["local-llm"], min_length=1, max_length=3,
     )
     agreement_fraction: float = Field(default=1, gt=0.5, le=1)
@@ -27,6 +27,8 @@ class OrchestratorConfig(StrictModel):
             raise ValueError("Duplicate reviewer backends cannot add votes")
         if {"local-llm", "llamafile"}.issubset(self.reviewers):
             raise ValueError("Local LoRA and its llamafile runtime are the same model family")
+        if {"clef", "clef-flash"}.issubset(self.reviewers):
+            raise ValueError("Evaluate Clef variants as separate candidates, not independent family votes")
         return self
 
 
@@ -99,6 +101,9 @@ class Orchestrator:
                 self.reviewers[backend] = None
         if "nimble" in self.reviewers and getattr(self.reviewers.get("ollaya"), "model_family", None) == "nimble":
             raise ValueError("Nimble and Nimble served through Ollaya cannot add separate votes")
+        if any(name in self.reviewers for name in ("clef", "clef-flash")) and getattr(
+                self.reviewers.get("ollaya"), "model_family", None) in ("clef", "clef-flash"):
+            raise ValueError("Clef and Clef served through Ollaya cannot add separate votes")
         identity = {
             "policy": self.name, "config": self.config.model_dump(),
             "primary": getattr(self.primary, "version", self.primary.name),

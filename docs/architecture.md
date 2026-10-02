@@ -57,6 +57,7 @@ The evidence snapshot contains the TimesFM forecast, strategy signals, numerical
 | Hybrid numerical anchor | BUY/SELL/HOLD distribution and fitted return forecast | Logistic classifier, Ridge regressor, train-only scaling and later temperature calibration | Supplies the direction that reviewers may confirm |
 | Local SmolLM2 adapter | Candidate-label likelihood scores | Shipped BTCUSDT/1h/3-candle LoRA | Default reviewer; extended shared-evidence prompt was not part of its original training |
 | Ollaya | Typed direction distribution and advisory evidence-sufficiency score | Separately pulled decision model; concrete manifest recorded | Optional reviewer; rejects incomplete/truncated state |
+| Clef / Clef-Flash | Native direction distribution and advisory evidence/risk scores | Workers AI alias or separately hosted immutable backbone/joint-head snapshot | Optional reviewer; native examples, bounded input and provenance checks; no measured trading edge |
 | Other reviewer adapters | Validated language or typed proposal | Separately configured model/server | Optional reviewers under the same confirmation policy |
 | Harness and risk policy | Final allowed action, sizing, stops, reason codes and typed rule fields | Deterministic code and `RiskConfig` | Owns output validation and simulated eligibility, not learned voting |
 
@@ -72,6 +73,7 @@ Model score calibration is also separate from trading validation. A temperature 
 | Harness `POST /v1/systemone` | Client to this application | Fixed trading questions over a market state; arbitrary custom classifications/instructions are not supported |
 | Ollaya `POST /api/decide` | Harness to a separate daemon | Independent direction and evidence-sufficiency questions, with truncation and concrete-model checks |
 | Nimble `POST /v1/systemone` | Harness to a configured service | Typed reviewer questions; numerical forecast supplied by the harness |
+| Clef Workers AI or self-hosted `POST /v1/systemone` | Harness to a native decision service | Versioned direction/evidence/risk questions; hosted aliases cannot certify pinned forward experiments |
 | OpenAI-compatible chat endpoint | Harness to a configured service | JSON proposal through the existing Chat Completions adapter |
 
 The incoming trading API and external reviewer APIs serve different roles. Ollaya is a local decision-model runtime, while the Python orchestrator owns multi-model confirmation and the application owns risk and persistence.

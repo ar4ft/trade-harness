@@ -1,0 +1,138 @@
+{
+  "implementation_version": "0.9.0",
+  "mode": "research_only",
+  "real_execution_enabled": false,
+  "sources": [
+    "https://blog.cloudflare.com/clef-decision-models/",
+    "https://developers.cloudflare.com/workers-ai/models/clef/",
+    "https://huggingface.co/Cloudflare/clef",
+    "https://huggingface.co/Cloudflare/clef-flash"
+  ],
+  "release_references": {
+    "clef": "2f3de3dd85f379784083b0814d997ab627200f0c",
+    "clef-flash": "17f0b0ad64efb65d273590632833508766b2aae6"
+  },
+  "actual_inference_measured": true,
+  "clef_fine_tuning_performed": false,
+  "default_reviewer_changed": false,
+  "native_export": {
+    "contract": "clef-systemone-no-truncation-v1",
+    "model": "clef-flash",
+    "examples": 2910,
+    "sha256": "3095781a432ca1e8a107aa23000dbd0ebfb465e14995e834f40eab561c57b2e8",
+    "source_dataset_sha256": "1c06ee5a4fbdbf1dd13bb98b38ddca6a2e2f2d47492034a239e99098b1d8a575",
+    "label_contract": "next-open-horizon-close-cost-aware-long-cash-v1",
+    "risk_config": {
+      "initial_cash": 10000,
+      "fee_bps": 10,
+      "slippage_bps": 5,
+      "max_position_fraction": 0.2,
+      "risk_per_trade": 0.005,
+      "stop_atr_multiple": 2,
+      "min_stop_fraction": 0.01,
+      "max_stop_fraction": 0.08,
+      "reward_risk_ratio": 2,
+      "daily_loss_limit": 0.02,
+      "max_drawdown": 0.1,
+      "max_consecutive_losses": 3,
+      "cooldown_candles": 3,
+      "max_holding_candles": 3,
+      "min_confidence": 0.55,
+      "min_net_edge": 0.001,
+      "max_volatility": 0.08,
+      "max_candle_age_intervals": 1.5,
+      "max_quote_age_ms": 30000,
+      "max_entry_gap_fraction": 0.01,
+      "allow_research": false
+    },
+    "boundaries": {
+      "calibration": 1746244799999,
+      "validation": 1754711999999,
+      "test": 1771473599999
+    },
+    "targeted_questions": [
+      "direction"
+    ],
+    "partitions": {
+      "train": {
+        "examples": 1452,
+        "labels": {
+          "BUY": 206,
+          "HOLD": 1066,
+          "SELL": 180
+        }
+      },
+      "calibration": {
+        "examples": 294,
+        "labels": {
+          "HOLD": 220,
+          "SELL": 31,
+          "BUY": 43
+        }
+      },
+      "validation": {
+        "examples": 582,
+        "labels": {
+          "HOLD": 428,
+          "BUY": 68,
+          "SELL": 86
+        }
+      },
+      "test": {
+        "examples": 582,
+        "labels": {
+          "HOLD": 454,
+          "BUY": 74,
+          "SELL": 54
+        }
+      }
+    },
+    "raw_context_candles": 21,
+    "limitations": [
+      "Automatic cost/position outcome targets are not expert or path-dependent policy labels.",
+      "No labels are invented for evidence_sufficient or risk_level.",
+      "This is a native request/target export, not a Clef training implementation."
+    ],
+    "path": "artifacts/research/clef-examples-cpu-v3.jsonl"
+  },
+  "limitations": [
+    "One real historical smoke request does not measure trading accuracy or calibration.",
+    "CPU performance is slow; full-context inference exceeded a four-minute timeout. GPU recommended for responsive operation.",
+    "NF4 is a distinct candidate from the published BF16 model and requires separate quality evaluation.",
+    "Hosted inference remains untested and hosted aliases cannot pin weights for forward promotion.",
+    "Foundation training cutoffs are unknown; old historical chronology cannot be certified."
+  ],
+  "self_hosted": {
+    "variant": "clef-flash",
+    "quantization": "nf4",
+    "device": "cpu",
+    "threads": 4,
+    "smoke_report": "reports/clef-selfhost-smoke.json",
+    "full_context_smoke": {
+      "raw_candles": 100,
+      "outcome": "client_timeout",
+      "timeout_seconds": 240
+    },
+    "short_context_smoke": {
+      "raw_candles": 21,
+      "latency_seconds": 179.34923924901523,
+      "action": "HOLD",
+      "raw_option_scores": {
+        "BUY": 0.0397,
+        "SELL": 0.0197,
+        "HOLD": 0.9406
+      },
+      "input_tokens": 4595
+    },
+    "snapshot_bytes": 19083377402,
+    "service_endpoint": "http://127.0.0.1:11436",
+    "orchestrator_smoke": {
+      "path": "reports/clef-orchestrator-smoke.json",
+      "sha256": "5adb18406f92639dcf70f6f37310b80b7a16e972320996c6ef1dea11b107eabc",
+      "final_action": "HOLD",
+      "consensus_accepted": true,
+      "real_execution_enabled": false,
+      "reviewer_status": "ok"
+    }
+  }
+}
