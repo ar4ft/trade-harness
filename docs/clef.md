@@ -72,6 +72,37 @@ Defaults pin Clef revision `2f3de3dd85f379784083b0814d997ab627200f0c` and Flash 
 
 `GET /metadata` records the repository/revision, server source digest, Torch/Transformers versions, token limit and reject-on-truncation contract. The client checks it before initialization and every inference, and requires matching response provenance. Before inference, a one-token overflow probe rejects inputs that the upstream encoder would truncate. GPU inference is serialized. The default context limit is 16,384 tokens; `--max-length` changes it within the documented model limit and becomes part of the pinned identity. This service accepts text/JSON, although the upstream release also supports images/video.
 
+### Full Clef (27B), alongside Flash
+
+The full model uses the same native service, typed questions, evidence, consensus and deterministic risk checks. Its default revision is pinned independently of Flash. Run it on port **11437** so an existing Flash service on 11436 can stay available. Select one variant per experiment using [the full-model preset](../examples/orchestrator-clef.json).
+
+The pinned full snapshot is **54,989,894,057 bytes across 25 files**, verified from Hugging Face release metadata. NF4 still downloads this original snapshot before quantizing the backbone in memory. Plan at least 60 GB free for the snapshot plus cache margin, with extra storage for the Python environment. The following are conservative planning budgets, not measured full-model peaks: **32 GiB available GPU memory for NF4**, or an **80 GiB GPU for BF16**. CPU NF4 development should plan 48 GiB available RAM; latency remains unmeasured. Context length and loading overhead may require more memory.
+
+```bash
+# In the separate GPU runtime prepared above:
+.clef-venv/bin/pip install 'bitsandbytes==0.50.2' accelerate
+
+# Inspect hardware before downloading. Exit 0 meets planning budgets; exit 2 does not.
+PYTHONPATH=src .clef-venv/bin/python -m trade_harness.clef_server \
+  --model clef --device cuda --quantization nf4 \
+  --cache-dir artifacts/clef/models --check
+
+# Full 27B model, preserving the native dense lexical/schema heads:
+PYTHONPATH=src .clef-venv/bin/python -m trade_harness.clef_server \
+  --model clef --device cuda --quantization nf4 \
+  --cache-dir artifacts/clef/models --port 11437
+
+# Connect the harness to full Clef, with TimesFM/numerical confirmation:
+CLEF_BASE_URL=http://127.0.0.1:11437 CLEF_TIMEOUT_SECONDS=600 \
+  trade-harness decide --backend orchestrator --reviewers clef
+```
+
+For full BF16, use `--quantization none` in both the readiness and launch commands on a sufficiently provisioned GPU. For CPU development, replace `--device cuda` with `--device cpu` and use the CPU runtime installation below. After caching, add `--offline` to launch. NF4 and BF16 are separate research candidates; switching quantization requires a new declaration and calibration. Do not combine Flash and full Clef into two votes from the same model family.
+
+`--check` performs no snapshot download or inference. It checks available memory, including the remaining Linux cgroup budget on CPU, and fresh-download disk space. Existing cache is deliberately not deducted or verified. Custom revisions have an unknown download size and cannot pass this planning check until separately verified. A passing check does not establish successful loading, latency, calibration or trading edge.
+
+This workspace cannot host the full model: it has 16 GiB RAM, no GPU, and about 5 GiB free after caching Flash. The [full-model readiness report](../reports/clef-full-readiness.json) records that constraint. Full-model inference and training have **not** been run here; Flash has real inference evidence below. A larger GPU host is needed to measure the full candidate against Flash using the same locked forward criteria.
+
 ### CPU development with four-bit Flash
 
 The full BF16 Flash backbone exceeds this workspace's 16 GiB memory limit. The native loader also supports an explicitly selected NF4 backbone, keeping `lm_head` dense because the joint head reads its lexical embedding rows. The joint head itself remains floating point. Quantization is recorded in metadata and defines a separate research candidate; its output quality must be evaluated independently.
@@ -100,6 +131,8 @@ The initial download still contains the 19.1 GB original snapshot; quantization 
 trade-harness export-clef --dataset artifacts/research/examples-v2.jsonl \
   --backend clef --output artifacts/research/clef-examples.jsonl
 ```
+
+The full-model export has 2,910 examples with 100 declared raw candles; its [manifest](../reports/clef-full-examples.json) records the source, costs, phase counts and content hash. It is included in the downloadable project bundle. No full-model fine-tuning has been performed.
 
 The exporter converts the immutable multi-asset paired flat/long examples into native `request.state/questions`, separate `targets.direction`, and separate outcomes. It uses the runtime state builder and the same declared `CLEF_CONTEXT_CANDLES`, preserves global train/calibration/validation/test phases and purges, and records source hashes, reference costs and position-aware labels. Forward **only** `request` for inference. No evidence-sufficiency or risk labels are invented from direction outcomes; those need separately defined/reviewed annotation criteria.
 

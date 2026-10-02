@@ -87,6 +87,11 @@ def main():
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--quantization", choices=("none", "nf4"), default="none")
     parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Report fresh-deployment disk/memory planning budgets; do not download or serve",
+    )
+    parser.add_argument(
         "--cache-dir", help="Snapshot cache directory, separate from the application wheel"
     )
     parser.add_argument(
@@ -102,6 +107,17 @@ def main():
         parser.error("Use an immutable snapshot revision and a token budget of 1–65536")
     if not 1 <= args.threads <= 128:
         parser.error("Use 1–128 CPU threads")
+    if args.check:
+        from .clef_resources import inspect_resources
+
+        try:
+            report = inspect_resources(
+                args.model, args.quantization, args.device, args.cache_dir, revision
+            )
+        except ValueError as error:
+            parser.error(str(error))
+        print(json.dumps(report, indent=2))
+        return 0 if report["ready_for_fresh_deployment"] else 2
     import torch
 
     torch.set_num_threads(args.threads)
@@ -173,4 +189,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

@@ -1,3 +1,7 @@
+# 0.9.1 (development)
+
+Adds full 27B Clef NF4/BF16 self-host launch instructions alongside Flash, plus a no-download hardware planning check for both variants. The pinned full snapshot is 55 GB; full-model inference remains untested because this workspace lacks disk, RAM and a GPU. Flash has verified native and orchestrator inference. Trading promotion still requires independent forward evidence; signing remains manual-only. See [Clef deployment](clef.md).
+
 # 0.9.0 (development)
 
 Adds Clef and Clef-Flash native typed reviewers through Cloudflare Workers AI or a pinned self-hosted GPU service. Adds native request/target exports using causal position/cost labels. Verifies typed outputs, ordinal rounding, context budgets and snapshot/service identity; hosted aliases cannot certify locked forward experiments. No Clef inference/trading edge is claimed and the default reviewer remains unchanged. Manual-only signing is preserved. See [Clef setup and evaluation](clef.md).

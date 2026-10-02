@@ -1,0 +1,23 @@
+{
+  "model": "clef",
+  "repository": "Cloudflare/clef",
+  "revision": "2f3de3dd85f379784083b0814d997ab627200f0c",
+  "quantization": "nf4",
+  "device": "cpu",
+  "snapshot_bytes": 54989894057,
+  "fresh_download_disk_required_bytes": 60358603177,
+  "disk_free_bytes": 5161197568,
+  "fresh_download_disk_budget_met": false,
+  "recommended_available_memory_bytes": 51539607552,
+  "available_memory_bytes": 2198761472,
+  "memory_planning_budget_met": false,
+  "gpu_inspection_error": null,
+  "ready_for_fresh_deployment": false,
+  "inference_tested": false,
+  "notes": [
+    "Planning budgets are estimates, not inference measurements or guarantees.",
+    "Disk check assumes a fresh snapshot; existing cache is not deducted or verified.",
+    "Custom revisions require separate snapshot-size verification.",
+    "NF4 preserves dense lexical and schema heads; original weights are downloaded."
+  ]
+}
