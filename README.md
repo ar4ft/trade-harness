@@ -12,7 +12,7 @@ The model has **not demonstrated a profitable walk-forward edge**. Default risk 
 flowchart LR
     Input["Closed OHLCV and indicators"] --> Evidence["TimesFM forecast and causal features"]
     Evidence --> Anchor["Numerical direction and return estimate"]
-    Evidence --> Reviewers["Local language or optional typed reviewers"]
+    Evidence --> Reviewers["Local LoRA, Clef / Flash, Ollaya or provider reviewers"]
     Anchor --> Consensus["Confirm numerical direction or HOLD"]
     Reviewers --> Consensus
     Consensus --> Risk["Deterministic risk and validation checks"]
@@ -21,7 +21,7 @@ flowchart LR
     Store --> Dashboard["Browser monitor"]
 ```
 
-The default reviewer is the shipped local LoRA adapter. Ollaya and other providers are optional reviewers. Each receives the same forecast/feature evidence without the numerical anchor's action or probabilities. Consensus confirms the anchor; risk checks can still block a proposal or force a protective exit. Numerical `forecast` and TimesFM `forecast_evidence` are separate estimates.
+The default reviewer is the shipped local LoRA adapter. Clef, Clef-Flash, Ollaya and other providers are optional reviewers. Each receives the same forecast/feature evidence without the numerical anchor's action or probabilities. Consensus confirms the anchor; risk checks can still block a proposal or force a protective exit. Numerical `forecast` and TimesFM `forecast_evidence` are separate estimates.
 
 Start with the [architecture and decision lifecycle](docs/architecture.md) for model roles, request sequence, failure handling, paper accounts, offline tuning, language training and deployment diagrams. Configure reviewers in [orchestration](docs/orchestration.md), and interpret quality claims using [trading validation](docs/trading-validation.md).
 
@@ -91,7 +91,16 @@ trade-harness decide --reviewers clef
 trade-harness decide --reviewers clef-flash
 ```
 
-They review the same causal evidence and retain advisory evidence/risk scores. Hosted and self-hosted adapters use the native SystemOne API. Native training-example export is available; trading scores remain uncalibrated and no Clef edge has been established.
+They review the same causal evidence and retain advisory evidence/risk scores. Hosted and self-hosted adapters use the native SystemOne API. Select full Clef and Flash as separate experiments; they cannot both add votes to one consensus.
+
+| Self-hosted variant | Suggested separate port | Verified status |
+| --- | --- | --- |
+| Clef-Flash 9B | 11436 | Real CPU NF4 native and full-orchestrator smoke tests completed; about three minutes for the measured native request |
+| Full Clef 27B | 11437, explicitly selected | NF4/BF16 launch and hardware checks prepared; actual inference untested because this workspace lacks resources |
+
+The full snapshot is about 55 GB before loading. Run the no-download `--check` on the intended host first; conservative memory recommendations and separate runtime installation are in [Clef deployment](docs/clef.md#full-clef-27b-alongside-flash). The application remains a Python CLI/API with a browser dashboard. Clef runs in a separate service environment.
+
+Native example export is available for both variants, with 2,910 paired position-aware examples. Exporting examples does not train Clef. Trading scores remain uncalibrated and no Clef edge has been established.
 
 ## TimesFM 3.0 forecasts
 

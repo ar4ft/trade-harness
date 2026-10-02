@@ -30,6 +30,29 @@ trade-harness decide --backend orchestrator --reviewers local-llm,llm,nimble
 
 The example policy uses unanimous agreement and a 0.55 minimum supporting score. Reviewer membership must be distinct; up to four total members include the mandatory numerical anchor. Reviewers run concurrently, each with an isolated snapshot/evidence copy and existing bounded provider timeouts. Provider initialization, transport, invalid output, and contract failures become audit statuses without leaking error details or credentials.
 
+## Clef and Flash reviewers
+
+[Clef](clef.md) adds native `choice`, `noul` and ordinal `score` review. The orchestrator uses its BUY/SELL/HOLD distribution for confirmation. Evidence-sufficiency and risk scores are advisory audit fields; they do not become extra votes, replace the numerical return forecast, or authorize a simulated fill.
+
+```bash
+# Start the separate native service using docs/clef.md first.
+# Full Clef, commonly on explicit port 11437:
+CLEF_BASE_URL=http://127.0.0.1:11437 CLEF_TIMEOUT_SECONDS=600 \
+  trade-harness decide --backend orchestrator \
+  --orchestrator-config examples/orchestrator-clef.json
+
+# Flash CPU smoke configuration, with a declared shorter raw window:
+CLEF_BASE_URL=http://127.0.0.1:11436 CLEF_CONTEXT_CANDLES=21 \
+  CLEF_TIMEOUT_SECONDS=600 trade-harness decide --backend orchestrator \
+  --orchestrator-config examples/orchestrator-clef-flash.json
+```
+
+Omit `CLEF_BASE_URL` and configure the documented Cloudflare credentials to use Workers AI instead. Both paths use native scoring rather than chat generation. Local serving verifies pinned metadata and response provenance. Hosted aliases cannot certify a locked forward experiment.
+
+Full Clef and Flash cannot coexist as votes in one policy, and a Clef model cannot be counted again through Ollaya. Both services can run for separate comparisons. The raw Clef window defaults to 100 candles and can be declared as 21–100; the choice and timeout enter reviewer identity. Features and forecasts retain their own causal histories. Declare a different candidate when changing precision, raw context, questions, service implementation or weights.
+
+A timeout, invalid schema, incomplete input or metadata drift produces an invalid reviewer status, so the fixed policy abstains. A 600-second timeout is for slow research inference; it does not permit stale market quotes. Real Flash CPU inference with TimesFM/numerical evidence completed; full 27B inference and trading edge remain unmeasured.
+
 ## What consensus means
 
 Language reviewers do not receive the primary model's action or direction probabilities. They receive the closed market snapshot in their backend's supported format, matured prior history, and a common structured evidence object: TimesFM forecast, strategy hypotheses, and numerical feature values. Earlier feedback must have matured before the snapshot timestamp and match its symbol/timeframe.
@@ -43,7 +66,7 @@ flowchart LR
     Forecast["TimesFM forecast evidence"] --> Snapshot["Shared timestamped snapshot and digest"]
     Strategies["Strategy signals and engineered features"] --> Snapshot
     Snapshot --> Local["Local reviewer"]
-    Snapshot --> Optional["Optional Ollaya or provider reviewers"]
+    Snapshot --> Optional["Optional Clef / Flash, Ollaya or provider reviewers"]
     Anchor["Numerical anchor direction"] --> Confirm["Fixed confirmation policy"]
     Local --> Confirm
     Optional --> Confirm
@@ -111,4 +134,4 @@ Orchestrator examples include their recorded forecast, strategy, and engineered 
 
 A real local CPU smoke test connected TimesFM, the numerical model, and the LoRA reviewer. They disagreed on the historical BTC snapshot, and the orchestrator abstained. A small later-than-known-training-cutoffs BTC audit measures agreement/direction behavior only; it is not a walk-forward edge test and contains no cost replay. See [audit results](../reports/consensus-comparison.json).
 
-Tests cover member isolation, disagreement/failure abstention, quorum integrity, duplicate model-family rejection, score gates, temporal history, provider JSON contracts, forged consensus claims, feature serialization, and final-period changes leaving parameter selection unchanged. TimesFM 3.0's research-use restrictions remain applicable to its outputs. Signing and notarization remain manual-only; managed updates select the `orchestrator` dependency group when that backend is configured.
+Tests cover member isolation, disagreement/failure abstention, quorum integrity, duplicate model-family rejection, score gates, temporal history, provider JSON contracts, forged consensus claims, feature serialization, and final-period changes leaving parameter selection unchanged. [Flash native and complete-orchestrator smoke evidence](clef.md#evaluation-and-verification) separately verifies that integration. The full 27B deployment has resource checks only. TimesFM 3.0's research-use restrictions remain applicable to its outputs. Signing and notarization remain manual-only; managed updates select the `orchestrator` dependency group when that backend is configured.

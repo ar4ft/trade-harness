@@ -33,6 +33,36 @@ Three versioned questions return a direction distribution, advisory evidence-suf
 
 The adapter validates model identity, question IDs/types, option sets, selected choice, finite probabilities, and expected ordinal score. Native four-decimal rounding is normalized within a bounded tolerance. Provider failure or invalid output invokes the existing failure-to-HOLD policy. Oversized input is rejected rather than trimming shared evidence. Evaluate Clef and Flash as separate candidates; related family variants cannot inflate one consensus.
 
+## Deployment map and current evidence
+
+```mermaid
+flowchart TD
+    Harness["Python CLI / API: shared evidence"] --> Adapter["Native Clef adapter"]
+    Adapter --> Route{"Configured CLEF_BASE_URL?"}
+    Route -->|"Yes"| Local["Separate native server"]
+    Route -->|"No; Cloudflare credentials"| Hosted["Workers AI model alias"]
+    Local --> Variant{"One variant per candidate"}
+    Variant --> Flash["Flash 9B: explicit port 11436"]
+    Variant --> Full["Full 27B: explicit port 11437"]
+    Flash --> Precision["BF16 or NF4 backbone; dense native heads"]
+    Full --> Precision
+    Precision --> Pin["Pinned revision, runtime, code and input contract"]
+    Pin --> Forward["Eligible to declare fresh forward research"]
+    Hosted --> Unpinned["Runtime review; weights unpinned"]
+    Unpinned --> NoLock["Locked promotion experiment refused"]
+```
+
+Ports identify separate deployments, not model identity; metadata supplies identity. The server default remains Flash/11436, so use explicit `--model clef --port 11437` for full Clef. `CLEF_BASE_URL` selects one service for the configured variant, and must match its metadata. Running two services does not permit two votes from the same family.
+
+| Candidate | Operational evidence | Trading validation |
+| --- | --- | --- |
+| Flash NF4 on CPU, 21 raw candles | Native request and TimesFM/numerical orchestrator completed; measured native latency 179.35 seconds | No calibrated trading scores or positive edge |
+| Flash NF4 on CPU, 100 raw candles | Request exceeded a 240-second client timeout; stopped | No quality conclusion |
+| Full Clef 27B, NF4 or BF16 | Pinned launch path and planning checks prepared; insufficient workspace resources for actual loading/inference | Unmeasured |
+| Workers AI variants | Adapter contracts tested; no credentialed inference measurement | Unpinned aliases cannot enter locked forward promotion |
+
+These rows describe the recorded verification runs, not continuous service availability. Native GPU inference and full-model quality comparisons still need measurement on the intended host. The [Flash reports](../reports/clef-integration.json) and [full-model resource report](../reports/clef-full-readiness.json) retain their measured scope.
+
 ## Workers AI
 
 Set credentials outside the repository using the names in [.env.example](../.env.example). The CLI reads process environment variables; it does not automatically load `.env` files.
@@ -72,11 +102,41 @@ Defaults pin Clef revision `2f3de3dd85f379784083b0814d997ab627200f0c` and Flash 
 
 `GET /metadata` records the repository/revision, server source digest, Torch/Transformers versions, token limit and reject-on-truncation contract. The client checks it before initialization and every inference, and requires matching response provenance. Before inference, a one-token overflow probe rejects inputs that the upstream encoder would truncate. GPU inference is serialized. The default context limit is 16,384 tokens; `--max-length` changes it within the documented model limit and becomes part of the pinned identity. This service accepts text/JSON, although the upstream release also supports images/video.
 
+### Native request and failure path
+
+```mermaid
+sequenceDiagram
+    participant O as Harness orchestrator
+    participant A as Clef adapter
+    participant S as Native service
+    participant E as Upstream encoder and model
+    O->>A: Market, prior history and shared evidence
+    A->>S: GET metadata, optional bearer authentication
+    S-->>A: Immutable model and service identity
+    A->>A: Verify identity and build bounded native request
+    A->>S: POST v1/systemone: state and typed questions
+    S->>S: Validate model, schema and byte limit
+    S->>E: Encode with one-token overflow probe
+    alt Complete input fits token budget
+        E-->>S: Complete encoded state
+        S->>E: Serialized native joint-head scoring
+        E-->>S: Choice, evidence and ordinal risk answers
+        S-->>A: Answers, matching provenance, no truncation
+        A->>A: Validate and normalize bounded rounding
+        A-->>O: Valid directional vote and advisory audit
+    else Invalid or over-budget input
+        S-->>A: Reject request
+        A-->>O: Invalid reviewer and confirmation abstention
+    end
+```
+
+Transport timeout, identity drift and invalid answers also produce an invalid reviewer status. The orchestrator cannot shrink configured membership to hide a failure. The incoming harness trading API and this external native service API have different contracts; see [interface ownership](architecture.md#incoming-and-outgoing-typed-apis).
+
 ### Full Clef (27B), alongside Flash
 
 The full model uses the same native service, typed questions, evidence, consensus and deterministic risk checks. Its default revision is pinned independently of Flash. Run it on port **11437** so an existing Flash service on 11436 can stay available. Select one variant per experiment using [the full-model preset](../examples/orchestrator-clef.json).
 
-The pinned full snapshot is **54,989,894,057 bytes across 25 files**, verified from Hugging Face release metadata. NF4 still downloads this original snapshot before quantizing the backbone in memory. Plan at least 60 GB free for the snapshot plus cache margin, with extra storage for the Python environment. The following are conservative planning budgets, not measured full-model peaks: **32 GiB available GPU memory for NF4**, or an **80 GiB GPU for BF16**. CPU NF4 development should plan 48 GiB available RAM; latency remains unmeasured. Context length and loading overhead may require more memory.
+The pinned full snapshot is **54,989,894,057 bytes across 25 files**, verified from Hugging Face release metadata. NF4 still downloads this original snapshot before quantizing the backbone in memory. Plan at least 61 GB free for the snapshot plus cache margin, with extra storage for the Python environment. The following are conservative planning budgets, not measured full-model peaks: **32 GiB available GPU memory for NF4**, or an **80 GiB GPU for BF16**. CPU NF4 development should plan 48 GiB available RAM; latency remains unmeasured. Context length and loading overhead may require more memory.
 
 ```bash
 # In the separate GPU runtime prepared above:
@@ -137,6 +197,29 @@ The full-model export has 2,910 examples with 100 declared raw candles; its [man
 The exporter converts the immutable multi-asset paired flat/long examples into native `request.state/questions`, separate `targets.direction`, and separate outcomes. It uses the runtime state builder and the same declared `CLEF_CONTEXT_CANDLES`, preserves global train/calibration/validation/test phases and purges, and records source hashes, reference costs and position-aware labels. Forward **only** `request` for inference. No evidence-sufficiency or risk labels are invented from direction outcomes; those need separately defined/reviewed annotation criteria.
 
 This export does not fine-tune Clef, and our SmolLM chat trainer cannot train its joint head. Native training would fit the head/adapters with categorical targets and a probability loss, retain separate later calibration, account for class imbalance and long/cash costs, and record rejected experiments. Cloudflare describes a fine-tuning partner service and planned self-service RL tooling, not a turnkey local trading trainer. Validate labels and simple baselines before optimizing an RL reward; agreement or profit on an already examined period is insufficient.
+
+### Example export, future training and acceptance
+
+```mermaid
+flowchart TD
+    Data["Immutable causal dataset with purged phases"] --> Build["Same runtime state builder and native questions"]
+    Build --> Request["request: observed context and shared evidence"]
+    Build --> Targets["targets / outcomes: separate future labels"]
+    Request --> Export["Versioned native JSONL and content manifest"]
+    Targets --> Export
+    Request --> Inference["Forward only request to native inference"]
+    Export -.-> Trainer["Future compatible head / adapter trainer; not implemented"]
+    Trainer -.-> Calibrate["Separate later probability calibration"]
+    Calibrate -.-> Candidate["Freeze weights, questions, runtime and policy"]
+    Candidate -.-> Lock["Declare fixed fresh-forward endpoint"]
+    Lock -.-> Capture["Record predictions before outcomes; matched paper baselines"]
+    Capture -.-> Gate["Coverage, cost stress, paired edge and calibration checks"]
+    Gate -.-> Review["Explicit reviewed candidate selection if all checks pass"]
+```
+
+Solid export/inference paths exist today. Dashed paths describe work still needed for an accepted, trained Clef candidate. Native head/adapter training is unimplemented; locked forward collection and acceptance tools exist in the harness, but have no accepted Clef evidence. There is no automatic Clef training or activation. BUY/SELL/HOLD targets come from cost-aware flat/long outcomes, not ensemble agreement. Class imbalance and constant HOLD require directional diagnostics. Native export does not supply invented sufficiency/risk targets.
+
+For fresh acceptance, the current three-hour horizon requires a fixed 140-day observation period, five completed windows, at least 100 closed trades, at least 20 effective time blocks, calibrated directional scores and positive paired edge against cash/momentum under normal and stressed costs. All planned assets must qualify under the [complete acceptance criteria](research-workflow.md#acceptance-criteria). An unknown foundation training cutoff blocks certified retrospective chronology even with pinned weights. Current Flash scores are uncalibrated and neither variant meets promotion criteria.
 
 ## Evaluation and verification
 

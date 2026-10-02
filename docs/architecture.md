@@ -12,6 +12,7 @@ The application supports long/cash decisions: BUY can enter a long, SELL can clo
 | Configure reviewers and consensus | [Orchestration](orchestration.md) |
 | Understand features, strategies and numerical training | [Hybrid decisions](hybrid-decisions.md) |
 | Run local typed decision models | [Ollaya integration](ollaya.md) |
+| Deploy full Clef or Flash and interpret native scores | [Clef integration](clef.md) |
 | Understand the forecast inputs and checkpoint | [TimesFM](timesfm.md) |
 | Interpret measured trading quality | [Trading validation](trading-validation.md) |
 | Package a local language runtime | [Distribution](distribution.md) |
@@ -28,13 +29,13 @@ flowchart TD
     Orch --> Hybrid["Hybrid numerical anchor"]
     Hybrid --> TF["Frozen TimesFM forecast"]
     Hybrid --> Features["Causal market and strategy features"]
-    TF --> Vector["35 features, or 39 with interaction recipe"]
+    TF --> Vector["Versioned 35 / 39 / 45-feature recipe"]
     Features --> Vector
     Vector --> Numerical["Classifier and return regressor"]
     TF --> Shared["Timestamped evidence snapshot"]
     Features --> Shared
     Vector --> Shared
-    Shared --> Reviews["Configured independent reviewers"]
+    Shared --> Reviews["Local LoRA, Clef / Flash, Ollaya or other reviewers"]
     Numerical --> Consensus["Fixed numerical-confirmation policy"]
     Reviews --> Consensus
     Consensus --> Checks["Harness validation and deterministic risk checks"]
@@ -44,7 +45,7 @@ flowchart TD
     Store --> Monitor["API and browser paper monitor"]
 ```
 
-The arrows represent calls or data dependencies. The numerical anchor is mandatory. One to three reviewers are configured; the default is `local-llm`. Ollaya, Nimble, an OpenAI-compatible server, or a dedicated llamafile server can supply optional reviews. These reviewers are peers: one review is not fed into another.
+The arrows represent calls or data dependencies. The numerical anchor is mandatory. One to three reviewers are configured; the default is `local-llm`. Clef or Clef-Flash, Ollaya, Nimble, an OpenAI-compatible server, or a dedicated llamafile server can supply optional reviews. These reviewers are peers: one review is not fed into another.
 
 The evidence snapshot contains the TimesFM forecast, strategy signals, numerical feature values, timestamp, symbol, timeframe, horizon and position. It excludes the numerical model's action and direction probabilities. Reviewers receive isolated copies of this evidence and supported market context, plus eligible past history. The numerical model itself currently ignores decision history; history is context for reviewers rather than a fitted numerical feature.
 
@@ -77,6 +78,36 @@ Model score calibration is also separate from trading validation. A temperature 
 | OpenAI-compatible chat endpoint | Harness to a configured service | JSON proposal through the existing Chat Completions adapter |
 
 The incoming trading API and external reviewer APIs serve different roles. Ollaya is a local decision-model runtime, while the Python orchestrator owns multi-model confirmation and the application owns risk and persistence.
+
+## Native Clef deployment boundary
+
+The Python harness and Clef service have separate dependencies and lifecycles. The harness's optional orchestration environment uses Transformers 4; the native service uses the upstream Transformers 5 runtime. TimesFM forecasts stay in the harness. Full Clef and Flash perform typed decision review using those forecasts and observed evidence.
+
+```mermaid
+flowchart LR
+    subgraph App["Harness environment: CLI / API / browser monitor"]
+        Forecast["TimesFM and causal strategies"] --> Evidence["Shared evidence; anchor vote withheld"]
+        Evidence --> Adapter["Clef adapter: validate scores and provenance"]
+        Anchor["Numerical direction and return estimate"] --> Consensus["Confirm anchor or HOLD"]
+        Adapter --> Consensus
+        Consensus --> Risk["Deterministic validation and risk"]
+        Risk --> Result["Audited decision / paper account"]
+    end
+    subgraph Native["Separate native service environment"]
+        Choice["Choose one variant and precision"] --> Check["Hardware planning check; no download"]
+        Check --> Snapshot["Pinned original snapshot cache"]
+        Snapshot --> Model["Backbone plus dense lexical and schema heads"]
+        Model --> API["Metadata and native SystemOne endpoints"]
+    end
+    Adapter -->|"Typed request; no outcome labels"| API
+    API -->|"Direction, advisory scores, provenance"| Adapter
+```
+
+A full-model deployment commonly uses explicit port 11437; Flash uses 11436. Set `CLEF_BASE_URL` to the chosen service and configure a matching reviewer. The server defaults to Flash on 11436 unless overridden. These are alternative research candidates, even if both services are running. NF4 quantizes the backbone at load time while keeping the lexical/schema heads floating point, and still downloads the original weights. Ordinary GGUF/llamafile packaging does not preserve that custom head.
+
+The service records immutable revision, server digest, dependencies, precision and token budget. It rejects token overflow before upstream truncation. The adapter checks metadata on initialization and inference, and checks response provenance; drift or invalid answers cannot yield a valid vote. Workers AI aliases provide no pinned weights and cannot enter a locked promotion experiment. Self-hosted pinning establishes identity, not trading quality or a known foundation training cutoff.
+
+For measured deployment status, full-model budgets and commands, use [Clef setup](clef.md). The Flash CPU smoke completed; full 27B inference remains untested. CPU latency does not relax freshness requirements for paper trading.
 
 ## One request, step by step
 
@@ -135,7 +166,7 @@ flowchart TD
     Risk --> Final["Final decision; protective exits retain priority"]
 ```
 
-The default requires unanimous agreement and a supporting score of at least 0.55 for directional proposals. A custom agreement fraction must exceed 50%. All configured reviewers must still return valid output; an unavailable reviewer never reduces the denominator. A reviewer majority cannot overturn the numerical direction. Duplicate local LoRA/llamafile family votes, and Nimble counted separately from Nimble served through Ollaya, are rejected.
+The default requires unanimous agreement and a supporting score of at least 0.55 for directional proposals. A custom agreement fraction must exceed 50%. All configured reviewers must still return valid output; an unavailable reviewer never reduces the denominator. A reviewer majority cannot overturn the numerical direction. Duplicate local LoRA/llamafile family votes, Nimble counted separately from Nimble served through Ollaya, full Clef plus Flash, and Clef counted separately from its Ollaya runtime, are rejected.
 
 Accepted consensus uses the minimum supporting score as a heuristic aggregate score. It does not average probabilities or treat members as statistically independent. An accepted HOLD remains subject to ordinary harness checks and can carry low-confidence guards. A rejected consensus adds `consensus_not_reached`. A primary exception produces a fallback with `model_failure`; that path cannot promise a complete member audit.
 
@@ -240,7 +271,7 @@ flowchart TD
     Stage --> Activate["Atomic active-version switch for next process"]
     Bases["Separately downloaded TimesFM and language base weights"] --> Runtime["Python harness runtime"]
     Activate --> Runtime
-    Daemon["Separately installed Ollaya or llamafile daemon"] --> Runtime
+    Daemon["Separately hosted Clef, Ollaya or llamafile service"] --> Runtime
 ```
 
 The wheel includes Python code, numerical artifacts, dashboard assets and the shipped LoRA adapter. Foundation base weights and optional external runtimes remain separate; the harness release signature does not cover their installations. TimesFM 3.0 research-use restrictions remain applicable. Apple notarization is prepared and requires configured credentials. Automatic builds are unsigned; signing/publication requires an explicit manual release run on a matching version tag.
@@ -257,8 +288,9 @@ Only `trade-harness-managed` performs automatic startup update checks. Updates s
 | Shared evidence and confirmation policy | [orchestrator.py](../src/trade_harness/orchestrator.py) |
 | Forecasting, strategies and features | [timesfm_model.py](../src/trade_harness/timesfm_model.py), [strategies.py](../src/trade_harness/strategies.py), [hybrid.py](../src/trade_harness/hybrid.py), [feature_engineering.py](../src/trade_harness/feature_engineering.py) |
 | Numerical fitting and experiments | [learning.py](../src/trade_harness/learning.py), [hybrid_training.py](../src/trade_harness/hybrid_training.py), [experiments.py](../src/trade_harness/experiments.py) |
+| Native Clef service, typed contract and readiness | [clef.py](../src/trade_harness/clef.py), [clef_contract.py](../src/trade_harness/clef_contract.py), [clef_server.py](../src/trade_harness/clef_server.py), [clef_resources.py](../src/trade_harness/clef_resources.py) |
 | Reviewer adapters | [local_language.py](../src/trade_harness/local_language.py), [ollaya.py](../src/trade_harness/ollaya.py), [nimble.py](../src/trade_harness/nimble.py), [llamafile_model.py](../src/trade_harness/llamafile_model.py) |
 | Paper accounts, risk and temporal history | [paper.py](../src/trade_harness/paper.py), [risk.py](../src/trade_harness/risk.py), [storage.py](../src/trade_harness/storage.py) |
 | Edge evidence and managed updates | [validation.py](../src/trade_harness/validation.py), [updater.py](../src/trade_harness/updater.py) |
 
-Current reports distinguish [parameter experiments](../reports/parameter-experiments.md), the [small local-reviewer audit](../reports/consensus-comparison.json), and [Ollaya connectivity smoke tests](../reports/ollaya-smoke.json). None establishes a profitable ensemble. New strategies, model weights, reviewer membership or quantization change the evaluated system and require their own comparison on fresh periods.
+Current reports distinguish [parameter experiments](../reports/parameter-experiments.md), the [small local-reviewer audit](../reports/consensus-comparison.json), [Ollaya connectivity smoke tests](../reports/ollaya-smoke.json), [Flash native inference](../reports/clef-selfhost-smoke.json), and [Flash with the full orchestrator](../reports/clef-orchestrator-smoke.json). Full 27B Clef has a [resource readiness report](../reports/clef-full-readiness.json), not an inference result. None establishes a profitable ensemble. New strategies, model weights, reviewer membership or quantization change the evaluated system and require their own comparison on fresh periods.

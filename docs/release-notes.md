@@ -4,7 +4,7 @@ Adds full 27B Clef NF4/BF16 self-host launch instructions alongside Flash, plus 
 
 # 0.9.0 (development)
 
-Adds Clef and Clef-Flash native typed reviewers through Cloudflare Workers AI or a pinned self-hosted GPU service. Adds native request/target exports using causal position/cost labels. Verifies typed outputs, ordinal rounding, context budgets and snapshot/service identity; hosted aliases cannot certify locked forward experiments. No Clef inference/trading edge is claimed and the default reviewer remains unchanged. Manual-only signing is preserved. See [Clef setup and evaluation](clef.md).
+Adds Clef and Clef-Flash native typed reviewers through Cloudflare Workers AI or a pinned self-hosted GPU service. Adds native request/target exports using causal position/cost labels. Verifies typed outputs, ordinal rounding, context budgets and snapshot/service identity; hosted aliases cannot certify locked forward experiments. Real Flash NF4 native and complete-orchestrator CPU smoke tests succeeded; full 27B and hosted inference remain unmeasured. No trading edge is established and the default reviewer remains unchanged. Manual-only signing is preserved. See [Clef setup and evaluation](clef.md).
 
 # 0.8.0 (development)
 

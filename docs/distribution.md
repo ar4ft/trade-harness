@@ -1,6 +1,33 @@
 # Distribute the harness and local language model
 
-The recommended package has two components: the Python harness wheel (numerical weights, dashboard, risk/paper engine, tokenizer/adapter metadata) and a Mozilla llamafile containing merged language weights plus the local inference server. Llamafile does not package the Python application or train the model. The default orchestrator uses the Python local reviewer and works without llamafile; install the `orchestrator` dependency group.
+For the shipped SmolLM2 reviewer, the local distribution package has two components: the Python harness wheel (numerical weights, dashboard, risk/paper engine, tokenizer/adapter metadata) and a Mozilla llamafile containing merged language weights plus the local inference server. Llamafile does not package the Python application or train the model. The default orchestrator uses the Python local reviewer and works without llamafile; install the `orchestrator` dependency group.
+
+## Choose a runtime that preserves the model contract
+
+```mermaid
+flowchart TD
+    Wheel["Harness wheel: code, numerical weights, LoRA and dashboard"] --> App["Python CLI / API runtime"]
+    Small["Merged SmolLM2 adapter"] --> GGUF["GGUF plus pinned llamafile executable"]
+    GGUF --> Score["Dedicated sequence-scoring reviewer"]
+    Full["Pinned Clef or Flash original snapshot"] --> Native["Separate Transformers 5 native service"]
+    Native --> Head["Backbone plus dense lexical and schema heads"]
+    Head --> Typed["Native typed reviewer"]
+    Score --> App
+    Typed --> App
+    Base["Separate TimesFM checkpoint"] --> App
+    App --> Result["Consensus, deterministic checks and paper audit"]
+```
+
+| Component | Distributed with the wheel? | Lifecycle |
+| --- | --- | --- |
+| Harness code, numerical artifacts, dashboard and shipped LoRA | Yes | Unsigned development build or manually signed release; managed application updates |
+| TimesFM and SmolLM2 base checkpoints | No | Separately downloaded, license- and identity-specific |
+| SmolLM2 llamafile | No | Explicit merge/conversion/build; launch its compatible scoring service separately |
+| Clef / Flash native backbone and joint head | No | Separate snapshot cache and Transformers 5 environment; NF4 is applied at loading |
+
+Ordinary GGUF/llamafile conversion does not preserve Clef's custom joint schema head. Distribute Clef using the [native service setup](clef.md), its pinned snapshot references and applicable licenses. Full Clef needs about 55 GB for original weights; Flash needs about 19 GB even with NF4 loading. Use the hardware planning check before a fresh download. Full-model deployment is prepared, while Flash has measured CPU inference evidence.
+
+The application release signature and updater cover the harness release artifacts. They do not sign, install or upgrade an external Clef server or foundation weights. Keep service identity fixed for a research declaration; changing service code, precision or weights requires a new candidate and evaluation.
 
 ## Build from the shipped adapter
 
