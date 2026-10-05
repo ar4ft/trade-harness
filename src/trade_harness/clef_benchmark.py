@@ -101,13 +101,33 @@ def benchmark(dataset, source_dataset, output, base_url, max_requests=3, timeout
                 if set(body["answers"]) != set(QUESTIONS) or direction.get("type") != "choice":
                     raise ValueError("Incomplete native question schema")
                 enough, risk = body["answers"]["evidence_sufficient"], body["answers"]["risk_level"]
-                if (enough.get("type") != "noul" or risk.get("type") != "score"
-                        or isinstance(enough.get("noul"), bool) or not isinstance(enough.get("noul"), (int, float))
-                        or not math.isfinite(enough["noul"]) or not 0 <= enough["noul"] <= 1):
+                if (
+                    enough.get("type") != "noul"
+                    or risk.get("type") != "score"
+                    or isinstance(enough.get("noul"), bool)
+                    or not isinstance(enough.get("noul"), (int, float))
+                    or not math.isfinite(enough["noul"])
+                    or not 0 <= enough["noul"] <= 1
+                ):
                     raise ValueError("Invalid native advisory probability")
                 levels = distribution(risk, ("0", "1", "2", "3"))
-                if not math.isclose(risk["score"], sum(int(k) * p for k, p in levels.items()), abs_tol=.001):
+                risk_score = risk.get("score")
+                if (
+                    isinstance(risk_score, bool)
+                    or not isinstance(risk_score, (int, float))
+                    or not math.isfinite(risk_score)
+                    or not math.isclose(
+                        risk_score, sum(int(k) * p for k, p in levels.items()), abs_tol=0.001
+                    )
+                ):
                     raise ValueError("Invalid native ordinal score")
+                tokens = body.get("usage", {}).get("input_tokens")
+                if (
+                    isinstance(tokens, bool)
+                    or not isinstance(tokens, int)
+                    or not 0 < tokens <= manifest["max_length"]
+                ):
+                    raise ValueError("Missing or invalid complete-context token measurement")
                 probability = distribution(direction, ("BUY", "SELL", "HOLD"))
                 if direction["choice"] != max(probability, key=probability.get):
                     raise ValueError("Invalid benchmark direction")
@@ -115,7 +135,7 @@ def benchmark(dataset, source_dataset, output, base_url, max_requests=3, timeout
                     status="ok",
                     action=direction["choice"],
                     probabilities=probability,
-                    input_tokens=body.get("usage", {}).get("input_tokens"),
+                    input_tokens=tokens,
                 )
             except httpx.TimeoutException:
                 result["status"] = "client_timeout"

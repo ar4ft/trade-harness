@@ -340,7 +340,10 @@ def test_remote_review_cannot_forge_a_cache_hit(dataset):
     assert vote.status == "ok" and vote.inference_ms >= 0 and not vote.cache_hit
 
 
-def test_native_benchmark_forwards_only_declared_requests(dataset, tmp_path, monkeypatch):
+@pytest.mark.parametrize("invalid_advisory", [False, True])
+def test_native_benchmark_forwards_only_declared_requests(
+    dataset, tmp_path, monkeypatch, invalid_advisory
+):
     monkeypatch.setenv("CLEF_CONTEXT_CANDLES", "21")
     native = tmp_path / "native.jsonl"
     export_clef(dataset, native, "clef-flash")
@@ -381,7 +384,7 @@ def test_native_benchmark_forwards_only_declared_requests(dataset, tmp_path, mon
                     "evidence_sufficient": {"type": "noul", "noul": 0.2},
                     "risk_level": {
                         "type": "score",
-                        "score": 1.0,
+                        "score": True if invalid_advisory else 1.0,
                         "probabilities": {"0": 0.0, "1": 1.0, "2": 0.0, "3": 0.0},
                     },
                 },
@@ -395,7 +398,8 @@ def test_native_benchmark_forwards_only_declared_requests(dataset, tmp_path, mon
     result = benchmark(
         native, dataset, tmp_path / "benchmark.json", "http://native", max_requests=1
     )
-    assert len(captured) == 1 and result["succeeded"] == 1
+    assert len(captured) == 1 and result["succeeded"] == (0 if invalid_advisory else 1)
+    assert result["failed"] == (1 if invalid_advisory else 0)
     assert not result["actual_gpu_measurements"] and not result["trading_edge_measured"]
 
 
