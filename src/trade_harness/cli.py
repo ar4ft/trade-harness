@@ -39,6 +39,10 @@ def main():
             "validate",
             "export-research",
             "export-clef",
+            "review-cases",
+            "score-reviewer",
+            "calibrate-reviewer",
+            "scorecard",
             "evaluate-research",
             "lock-research",
             "evaluate-forward",
@@ -50,6 +54,9 @@ def main():
     parser.add_argument("--base-revision")
     parser.add_argument("--feature-recipe", choices=["base", "interactions", "quant"], default="base")
     parser.add_argument("--max-decisions", type=int, default=0, help="Predeclare a bounded audit schedule; 0 uses all")
+    parser.add_argument("--allow-unknown-cutoff", action="store_true", help="Bounded retrospective audit only; cannot certify reviewer chronology")
+    parser.add_argument("--max-samples", type=int, default=256, help="Reviewer cohort budget per held-out phase")
+    parser.add_argument("--per-case", type=int, default=8)
     parser.add_argument("--reviewer-path", help="Candidate local reviewer adapter directory")
     parser.add_argument("--prospective-plan", help="Immutable declaration for future paper observations")
     parser.add_argument("--audit-output", help="Append-only forward paper journal JSONL")
@@ -131,6 +138,36 @@ def main():
 
         uvicorn.run("trade_harness.api:app", host=args.host, port=args.port)
         return
+    if args.command == "review-cases":
+        from .casebook import export_cases
+
+        if not args.dataset or not args.output:
+            parser.error("--dataset (comma-separated paths) and --output are required")
+        print(json.dumps(export_cases(args.dataset.split(","), args.output, args.per_case), indent=2))
+        return
+    if args.command == "score-reviewer":
+        from .reviewer_calibration import score_reviewer
+
+        if not args.dataset or not args.output or args.backend not in ("local-llm", "llamafile", "llm", "nimble", "ollaya", "clef", "clef-flash"):
+            parser.error("--dataset, --output and an explicit reviewer --backend are required")
+        if args.reviewer_path:
+            os.environ["TRADING_LORA_PATH"] = args.reviewer_path
+        print(json.dumps(score_reviewer(args.dataset, args.backend, args.output, args.max_samples), indent=2))
+        return
+    if args.command == "calibrate-reviewer":
+        from .reviewer_calibration import fit_calibration
+
+        if not args.input or not args.output:
+            parser.error("--input reviewer cohort and --output are required")
+        print(json.dumps(fit_calibration(args.input, args.output), indent=2))
+        return
+    if args.command == "scorecard":
+        from .operations import export_scorecard
+
+        if not args.input or not args.output:
+            parser.error("--input journals/SQLite paths and --output are required")
+        print(json.dumps(export_scorecard(args.input.split(","), args.output), indent=2))
+        return
     if args.command == "export-research":
         from .research_data import export_research
 
@@ -176,7 +213,7 @@ def main():
         if args.command == "evaluate-research":
             evaluate_research(args.dataset, reviewers, args.output or "reports/research-evaluation.json",
                               folds=args.folds if args.folds is not None else 5,
-                              max_decisions=args.max_decisions)
+                              max_decisions=args.max_decisions, allow_unknown_cutoff=args.allow_unknown_cutoff)
         else:
             result = lock_research(args.dataset, reviewers,
                                    args.output or "artifacts/research/prospective-plan.json", args.trial_count)
@@ -231,6 +268,7 @@ def main():
             if not p.name.endswith(".provenance.json")
         ]
         evaluate(paths, args.output or "reports/walk-forward.json",
+                 model_output=args.model_output or "artifacts/research/numerical-candidate.json",
                  folds=args.folds if args.folds is not None else 3)
         return
     elif args.command == "paper":

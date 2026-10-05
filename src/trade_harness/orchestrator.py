@@ -114,6 +114,11 @@ class Orchestrator:
         self.artifact = {"symbols": getattr(self.primary, "artifact", {}).get("symbols", [])}
 
     def _review(self, backend, market, history, evidence, evidence_hash):
+        import time
+
+        from .operations import AuditedCache
+
+        started = time.monotonic()
         model = self.reviewers[backend]
         base = dict(member=backend, model_version=getattr(model, "version", None),
                     evidence_mode="extended_prompt_untrained" if backend in ("local-llm", "llamafile")
@@ -133,15 +138,21 @@ class Orchestrator:
             return ModelVote(**{**base, "model_version": value.model_version or base["model_version"]}, status="ok",
                              action=value.action, confidence=value.confidence,
                              probabilities=value.probabilities,
-                             calibration=value.probability_calibration, review_details=value.review_details)
+                             calibration=value.probability_calibration, review_details=value.review_details,
+                             inference_ms=(time.monotonic() - started) * 1000,
+                             cache_hit=isinstance(model, AuditedCache) and bool(value.review_details.get("research_cache_hit", False)))
         except ValueError:
-            return ModelVote(**base, status="invalid")
+            return ModelVote(**base, status="invalid", inference_ms=(time.monotonic() - started) * 1000)
         except Exception:  # noqa: BLE001 - credentials/provider errors must never reach clients
-            return ModelVote(**base, status="unavailable")
+            return ModelVote(**base, status="unavailable", inference_ms=(time.monotonic() - started) * 1000)
 
     def predict(self, market, history):
+        import time
+
         market = ensure_indicators(market)
+        started = time.monotonic()
         primary = check_proposal(self.primary.predict(market, []), market)
+        primary_ms = (time.monotonic() - started) * 1000
         if primary.forecast_evidence is None or (
             primary.forecast_evidence.as_of != market.timestamps[-1]
             or primary.forecast_evidence.horizon != market.horizon
@@ -155,6 +166,7 @@ class Orchestrator:
             action=primary.action, confidence=primary.confidence, probabilities=primary.probabilities,
             calibration=primary.probability_calibration, evidence_mode="trained_features",
             evidence_sha256=evidence_hash,
+            inference_ms=primary_ms,
         )]
         past = safe_history(history, market)
         with ThreadPoolExecutor(max_workers=len(self.reviewers)) as pool:

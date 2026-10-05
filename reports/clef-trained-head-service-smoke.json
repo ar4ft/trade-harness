@@ -1,0 +1,144 @@
+{
+  "contract": "native-service-benchmark-v1",
+  "model": "clef-flash",
+  "dataset_sha256": "3095781a432ca1e8a107aa23000dbd0ebfb465e14995e834f40eab561c57b2e8",
+  "raw_context_candles": 21,
+  "sample_ids": [
+    "BTCUSDT:1754711999999:flat"
+  ],
+  "request_timeout_seconds": 600.0,
+  "requests": [
+    {
+      "id": "BTCUSDT:1754711999999:flat",
+      "as_of": 1754711999999,
+      "request_sha256": "7e33db4449e3e822c99c285f363049d9ad1a5c11b31a5cb35df171e54b9bcaca",
+      "status": "ok",
+      "action": "HOLD",
+      "probabilities": {
+        "BUY": 0.0388,
+        "SELL": 0.0203,
+        "HOLD": 0.9409
+      },
+      "input_tokens": 4769,
+      "roundtrip_ms": 193522.5132450032
+    }
+  ],
+  "actual_gpu_measurements": false,
+  "labels_forwarded": false,
+  "trading_edge_measured": false,
+  "real_execution_enabled": false,
+  "manifest": {
+    "model": "clef-flash",
+    "repository": "Cloudflare/clef-flash",
+    "revision": "17f0b0ad64efb65d273590632833508766b2aae6",
+    "runtime": {
+      "torch": "2.11.0+cpu",
+      "transformers": "5.10.2",
+      "bitsandbytes": "0.50.2"
+    },
+    "quantization": "nf4",
+    "device": "cpu",
+    "threads": 4,
+    "native_runtime_sha256": "cc9031147025581c98e0a357795bed4fa23036a87895c00d64a7c3fbf294db7d",
+    "upstream_code_sha256": "0e304cf7c6500e8bb59bef7e2afd2c6373f82596dfb3b57d1aa93c175e2dc3a3",
+    "head_dtype": "float32",
+    "custom_head": {
+      "manifest_sha256": "8e50e326b0df54d67d6ea76affe5868aa81a68c4a3488e12d5376773a1737623",
+      "head_sha256": "4b9a94f456879f9f2031e0a39a2a7ff84e9ab893ceeb2cf6b52ae0b15c9bba35",
+      "fine_tuned_until": 1743490799999,
+      "raw_context_candles": 21,
+      "symbols": [
+        "BTCUSDT",
+        "ETHUSDT",
+        "SOLUSDT"
+      ],
+      "timeframe": "1h",
+      "horizon": 3,
+      "feature_names": [
+        "return_1",
+        "return_5",
+        "return_20",
+        "volatility_20",
+        "range_1",
+        "volume_ratio",
+        "sma_distance",
+        "rsi_scaled",
+        "macd_scaled",
+        "atr_scaled",
+        "return_3",
+        "return_10",
+        "volatility_5",
+        "body",
+        "upper_wick",
+        "lower_wick",
+        "volume_delta",
+        "rsi_delta_3",
+        "hour_sin",
+        "hour_cos",
+        "weekday_sin",
+        "weekday_cos",
+        "trend_direction",
+        "trend_strength",
+        "breakout_direction",
+        "breakout_strength",
+        "reversion_direction",
+        "reversion_strength",
+        "strategy_agreement",
+        "no_trade_strength",
+        "forecast_return",
+        "forecast_lower",
+        "forecast_upper",
+        "forecast_width",
+        "forecast_vs_momentum"
+      ],
+      "risk_config": {
+        "initial_cash": 10000,
+        "fee_bps": 10,
+        "slippage_bps": 5,
+        "max_position_fraction": 0.2,
+        "risk_per_trade": 0.005,
+        "stop_atr_multiple": 2,
+        "min_stop_fraction": 0.01,
+        "max_stop_fraction": 0.08,
+        "reward_risk_ratio": 2,
+        "daily_loss_limit": 0.02,
+        "max_drawdown": 0.1,
+        "max_consecutive_losses": 3,
+        "cooldown_candles": 3,
+        "max_holding_candles": 3,
+        "min_confidence": 0.55,
+        "min_net_edge": 0.001,
+        "max_volatility": 0.08,
+        "max_candle_age_intervals": 1.5,
+        "max_quote_age_ms": 30000,
+        "max_entry_gap_fraction": 0.01,
+        "allow_research": false
+      },
+      "probability_calibration": "uncalibrated"
+    },
+    "contract": "clef-systemone-no-truncation-v1",
+    "input_truncation": "reject",
+    "max_length": 16384,
+    "server_sha256": "9cd41aa04cd3ca178e09aa7973d6a9188d89beaa58440972f122a655d8f19b9c"
+  },
+  "service_startup": {
+    "cold_load_ms": 75264.99123900066,
+    "process_peak_rss_kib": 14766828,
+    "device": "cpu",
+    "quantization": "nf4"
+  },
+  "successful_roundtrip": {
+    "samples": 1,
+    "p50_ms": 193522.5132450032,
+    "p95_ms": 193522.5132450032,
+    "max_ms": 193522.5132450032
+  },
+  "succeeded": 1,
+  "failed": 0,
+  "limitations": [
+    "HTTP timing includes metadata check, queue, encoding and inference.",
+    "A client timeout does not cancel computation on the server.",
+    "Few historical probes do not establish sustained p95 latency or trading accuracy.",
+    "Startup metrics are operational measurements, not part of model identity."
+  ]
+}

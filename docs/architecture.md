@@ -15,6 +15,7 @@ The application supports long/cash decisions: BUY can enter a long, SELL can clo
 | Deploy full Clef or Flash and interpret native scores | [Clef integration](clef.md) |
 | Understand the forecast inputs and checkpoint | [TimesFM](timesfm.md) |
 | Interpret measured trading quality | [Trading validation](trading-validation.md) |
+| Compare complete policies, calibrate reviewers and monitor reliability | [Evidence and operations](evidence-and-operations.md) |
 | Package a local language runtime | [Distribution](distribution.md) |
 | Build, sign and update the application | [Releases and updates](releases-and-updates.md) |
 
@@ -43,6 +44,7 @@ flowchart TD
     Decision --> Store
     Decision --> Client
     Store --> Monitor["API and browser paper monitor"]
+    Store --> Operations["Read-only operational scorecards and matured outcomes"]
 ```
 
 The arrows represent calls or data dependencies. The numerical anchor is mandatory. One to three reviewers are configured; the default is `local-llm`. Clef or Clef-Flash, Ollaya, Nimble, an OpenAI-compatible server, or a dedicated llamafile server can supply optional reviews. These reviewers are peers: one review is not fed into another.
@@ -254,6 +256,8 @@ Consensus is not a training label. The exporter uses human-reviewed actions as t
 Matured outcomes entering history are context updates, not automatic online learning. There is no background training job or self-modifying strategy loop.
 
 The [contextual research workflow](research-workflow.md) separately trains a position-aware reviewer using the actual shared-evidence prompt, purged next-open outcome labels, and a later calibration partition. It evaluates the complete consensus and risk policy against matched baselines. Fresh promotion evidence is collected only after declaring fixed model/code/risk identities. The original shipped compact reviewer is retained until a candidate earns activation through an explicit, evidenced decision.
+
+The [native Clef trainer](clef.md#native-examples-and-fine-tuning) instead freezes its upstream text backbone and trains the native joint head using exact runtime state/questions. It does not use the chat LoRA trainer. Optional identity-bound reviewer temperatures wrap individual reviewers inside the backend factory, before consensus; heuristic consensus confidence remains uncalibrated. Difficult-case review, seven-way policy ablations, GPU measurement and operational provenance are described in [evidence and operations](evidence-and-operations.md).
 
 ## Deployment and update boundaries
 

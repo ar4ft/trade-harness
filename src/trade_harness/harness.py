@@ -1,3 +1,5 @@
+import hashlib
+import json
 import math
 import time
 from uuid import uuid4
@@ -5,7 +7,7 @@ from uuid import uuid4
 from .features import features
 from .models import Model
 from .schemas import Decision, Forecast, MarketInput, Proposal
-from .storage import Store
+from .storage import Store, timeframe_ms
 from .validation import TradingValidation
 
 
@@ -28,13 +30,14 @@ class Harness:
     def decide(self, market: MarketInput, account=None, now_ms=None, quote=None) -> Decision:
         guards = []
         started = time.monotonic()
+        history = []
         try:
-            proposed = self.model.predict(
-                market,
+            history = (
                 self.store.history(market, scope=self.scope)
                 if getattr(self.model, "uses_history", True)
-                else [],
+                else []
             )
+            proposed = self.model.predict(market, history)
             proposed = Proposal.model_validate(proposed.model_dump())
             if not getattr(self.model, "produces_consensus", False):
                 proposed.consensus = None
@@ -74,6 +77,7 @@ class Harness:
                     method="fallback",
                 ),
             )
+        inference_ms = (time.monotonic() - started) * 1000
         if proposed.trading_validation is None:
             proposed.trading_validation = TradingValidation(
                 symbol=market.symbol,
@@ -139,6 +143,32 @@ class Harness:
             execution=execution,
             fields=fields,
             mode=self.mode,
+            operational={
+                "contract": "operational-v1",
+                "input_sha256": hashlib.sha256(
+                    json.dumps(market.model_dump(), sort_keys=True, allow_nan=False).encode()
+                ).hexdigest(),
+                "history_sha256": hashlib.sha256(json.dumps(history, sort_keys=True, allow_nan=False).encode()).hexdigest(),
+                "harness_config_sha256": hashlib.sha256(json.dumps({
+                    "minimum_confidence": self.minimum_confidence,
+                    "max_volatility": self.max_volatility, "mode": self.mode,
+                    "scope": self.scope,
+                }, sort_keys=True, allow_nan=False).encode()).hexdigest(),
+                "risk_config_sha256": hashlib.sha256(json.dumps(
+                    self.risk_config.model_dump() if self.risk_config else None,
+                    sort_keys=True, allow_nan=False,
+                ).encode()).hexdigest(),
+                "position": market.position,
+                "configured_model_version": getattr(self.model, "version", None) if isinstance(getattr(self.model, "version", None), str) else self.model.name,
+                "recorded_at": int(time.time() * 1000),
+                "model_call_and_validation_ms": inference_ms,
+                "decision_before_persistence_ms": (time.monotonic() - started) * 1000,
+                "candle_age_ms_at_call": now_ms - market.timestamps[-1] if now_ms is not None else None,
+                "missing_intervals": sum(
+                    right - left != timeframe_ms(market.timeframe)
+                    for left, right in zip(market.timestamps[:-1], market.timestamps[1:])
+                ),
+            },
         )
         self.store.save(market, decision, scope=self.scope)
         return decision

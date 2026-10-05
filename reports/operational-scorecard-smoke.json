@@ -1,0 +1,95 @@
+{
+  "contract": "operational-scorecard-v1",
+  "evaluated_at": 1791176319685,
+  "records": 6,
+  "decisions": 6,
+  "rejected_or_failed_records": 0,
+  "final_actions": {
+    "HOLD": 6
+  },
+  "proposed_actions": {
+    "HOLD": 6
+  },
+  "directional_coverage": 0.0,
+  "hold_fraction": 1.0,
+  "guard_counts": {
+    "low_confidence": 5,
+    "consensus_not_reached": 2
+  },
+  "provider_status_counts": {
+    "numerical:ok": 6,
+    "local-llm:ok": 6
+  },
+  "observed_missing_intervals": 0,
+  "traceable_decisions": 6,
+  "matured_outcomes": 6,
+  "outcomes_not_attached_or_not_matured": 0,
+  "matured_directional_samples": 0,
+  "matured_direction_accuracy": null,
+  "model_call_and_validation": {
+    "samples": 6,
+    "p50_ms": 2015.263564999259,
+    "p95_ms": 4260.137129249415,
+    "max_ms": 4332.397598998796
+  },
+  "uncached_member_call": {
+    "samples": 9,
+    "p50_ms": 0.8350200005224906,
+    "p95_ms": 4198.238297399803,
+    "max_ms": 4307.406948999414
+  },
+  "inference_and_replay_combined": {
+    "samples": 6,
+    "p50_ms": 2016.5892884997447,
+    "p95_ms": 4261.689599500642,
+    "max_ms": 4333.868253001128
+  },
+  "reviewer_cache_hits": 3,
+  "action_drift_by_identity_market_position": [
+    {
+      "identity": [
+        "a14c14f4086aafab",
+        "BTCUSDT",
+        "1h",
+        "flat"
+      ],
+      "available": false,
+      "reason": "Need >=20 decisions within one identity/market/position"
+    },
+    {
+      "identity": [
+        "a14c14f4086aafab",
+        "ETHUSDT",
+        "1h",
+        "flat"
+      ],
+      "available": false,
+      "reason": "Need >=20 decisions within one identity/market/position"
+    },
+    {
+      "identity": [
+        "a14c14f4086aafab",
+        "SOLUSDT",
+        "1h",
+        "flat"
+      ],
+      "available": false,
+      "reason": "Need >=20 decisions within one identity/market/position"
+    }
+  ],
+  "observation_coverage": null,
+  "mode": "research_only",
+  "real_execution_enabled": false,
+  "limitations": [
+    "Coverage requires an independently declared schedule; record counts cannot establish it.",
+    "Latency scopes are separate; cached or combined replay timings are not GPU inference benchmarks.",
+    "Direction accuracy uses the recorded direction label, not net profitability or expert judgment.",
+    "Rejected inputs absent from a journal/database cannot be counted retrospectively."
+  ],
+  "sources": [
+    {
+      "path": "/workspace/trade-harness/artifacts/research/controlled-ablation-v3-fold1-consensus_local-llm-normal.jsonl",
+      "sha256": "d233909740b02913dd038b7212b9d0d408e1c480c5e44e100c470ebf9b3da4f8"
+    }
+  ]
+}

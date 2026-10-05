@@ -7,7 +7,7 @@ flowchart TD
     History["Versioned closed OHLCV history"] --> Forecast["Frozen causal forecast cache"]
     Forecast --> Examples["Shared evidence plus flat and long examples"]
     Examples --> Split["Global chronological split and label purge"]
-    Split --> Train["Training: features and reviewer LoRA"]
+    Split --> Train["Training: numerical, contextual LoRA or native Clef head"]
     Split --> Calibrate["Later calibration: temperature only"]
     Train --> Calibrate
     Calibrate --> Validation["Five chronological end-to-end replay folds"]
@@ -76,9 +76,9 @@ trade-harness evaluate-research \
   --output artifacts/research/full-evaluation.json
 ```
 
-The evaluator compares the numerical model, fixed momentum and strategy baselines, and every declared reviewer subset. All use identical decision timestamps and risk/cost settings. Each asset has an independent funded paper account. Normal and doubled-cost runs replay every intervening bar for next-open fills, stops, targets, horizon exits, account limits, and pending-order handling. Unscheduled bars update risk without creating synthetic HOLD entries in decision history.
+The evaluator compares observed numerical features alone (22), observed features plus fixed strategies (30), the TimesFM/strategy hybrid (35), cash, fixed momentum and strategy policies, and every declared reviewer subset. This isolates the forecast contribution from the strategy contribution. All use identical decision timestamps and risk/cost settings. Each asset has an independent funded paper account. Normal and doubled-cost runs replay every intervening bar for next-open fills, stops, targets, horizon exits, account limits, and pending-order handling. Unscheduled bars update risk without creating synthetic HOLD entries in decision history. See the [completed comparison and new research tools](evidence-and-operations.md).
 
-Numerical weights and calibration are fitted before each validation fold. Reviewers remain frozen and must declare a training cutoff earlier than the research validation period. Unknown-cutoff external services can still be runtime reviewers, but this evaluator refuses to certify their historical chronology. Member inference is cached using the exact input, history, shared evidence, and weight version; outcomes are excluded from cache keys and inference calls.
+Numerical weights and calibration are fitted before each validation fold. Reviewers remain frozen and must declare a training cutoff earlier than the research validation period. Unknown-cutoff external services can still be runtime reviewers, but this evaluator refuses to certify their historical chronology. An explicit `--allow-unknown-cutoff --max-decisions N` permits only a bounded historical plumbing audit with chronology marked uncertified and promotion refused; it does not permit an unbounded certified benchmark. Member inference is cached using the exact input, history, shared evidence, and weight version; outcomes are excluded from cache keys and inference calls. Only harness-owned caches can mark a cache hit, and cached calls are excluded from provider timing.
 
 Each replay writes a JSONL ledger and records its SHA256. Rows retain forecast/strategy/feature evidence, member votes, proposed and final actions, guardrails, costs/fill events, latency, and subsequently attached outcomes. Aggregate reports include per-class reliability, directional confidence bands, decision coverage, forecast error/interval coverage, and asset/regime summaries. An always-HOLD policy has zero directional coverage and cannot pass minimum evidence counts even if its classification accuracy looks high.
 

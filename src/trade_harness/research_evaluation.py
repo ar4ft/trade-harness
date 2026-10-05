@@ -11,15 +11,22 @@ import numpy as np
 from .diagnostics import decision_diagnostics, feature_diagnostics, paired_block_interval, regime
 from .hybrid import HybridModel
 from .hybrid_training import digest
-from .learning import Dataset, fit, load_series, window
+from .learning import MODEL_FEATURES, Dataset, DecisionModel, fit, load_series, window
 from .models import BaselineModel, load_model
+from .operations import AuditedCache, scorecard
 from .orchestrator import Orchestrator, OrchestratorConfig
 from .paper import PaperEngine
 from .promotion import PromotionEvidence
 from .research_data import load_research
 from .risk import RiskConfig
 from .storage import Store, timeframe_ms
-from .strategies import STRATEGY_VERSION, StrategyModel
+from .strategies import (
+    STRATEGY_FEATURES,
+    STRATEGY_VERSION,
+    StrategyModel,
+    strategy_features,
+    strategy_signals,
+)
 
 
 class CachedForecaster:
@@ -41,7 +48,7 @@ class CachedForecaster:
         return self.predictions[(market.symbol, market.timestamps[-1])].model_copy(deep=True)
 
 
-class MemoizedReviewer:
+class MemoizedReviewer(AuditedCache):
     """Cache by exact input/history/evidence AND weights; never cache outcome labels."""
     def __init__(self, model, path):
         self.model, self.name, self.version = model, model.name, model.version
@@ -61,12 +68,38 @@ class MemoizedReviewer:
 
         key = digest({"version": self.version, "market": market.model_dump(),
                       "history": history, "evidence": evidence})
-        if key not in self.cache:
+        hit = key in self.cache
+        if not hit:
             value = self.model.predict_with_evidence(market, history, evidence)
             self.cache[key] = value.model_dump()
             with self.path.open("a") as stream:
                 stream.write(json.dumps({"key": key, "proposal": self.cache[key]}, allow_nan=False) + "\n")
-        return Proposal.model_validate(self.cache[key])
+        value = Proposal.model_validate(self.cache[key]).model_copy(deep=True)
+        value.review_details["research_cache_hit"] = hit
+        return value
+
+
+class ObservedStrategyModel(DecisionModel):
+    name = "observed-strategy-numerical-v1"
+    feature_names = MODEL_FEATURES + STRATEGY_FEATURES
+
+    def feature_vector(self, market):
+        from .learning import model_features
+
+        return np.concatenate([model_features(market), strategy_features(strategy_signals(market))])
+
+
+class CashModel:
+    name = version = "cash-baseline-v1"
+    uses_history = False
+
+    def predict(self, market, history):
+        from .schemas import Forecast, Proposal
+
+        return Proposal(action="HOLD", confidence=1, model_version=self.version,
+                        rationale="Fixed cash reference; no market probability claim",
+                        forecast=Forecast(horizon=market.horizon, expected_return=0,
+                                          projected_close=market.ohlc[-1][3], method="cash"))
 
 
 def replay_candidate(series, model, schedule, start, end, config, examples, ledger):
@@ -90,8 +123,7 @@ def replay_candidate(series, model, schedule, start, end, config, examples, ledg
                 proposal = {**decision, "action": decision["proposed_action"]}
                 row = {"symbol": symbol, "as_of": timestamp, "recorded_at": int(time.time() * 1000),
                        "regime": regime(source["evidence"]["features"]),
-                       "input_sha256": digest(view.model_copy(update={"position":
-                           "long" if result["account"]["units"] else "flat"}).model_dump()),
+                       "input_sha256": decision["operational"]["input_sha256"],
                        "proposal": proposal, "decision": decision, "outcome": source["outcome"],
                        "inference_and_replay_ms": (time.monotonic() - before) * 1000}
                 rows.append(row)
@@ -121,19 +153,27 @@ def _daily_returns(daily, start, end, initial_cash):
     return np.mean(returns, axis=0)
 
 
-def _artifact(data, start, contract, feature_config):
+def _artifact(data, start, contract, feature_config, observed_only=False):
     available = np.unique(data.timestamp[data.timestamp < start])
     cut = int(available[int(len(available) * 0.8)])
     train = data.subset((data.timestamp < cut) & (data.observed_at < cut))
     calibration = data.subset((data.timestamp >= cut) & (data.observed_at < start))
-    artifact = fit(train, calibration, "logistic", contract["feature_names"])
-    artifact.update({"forecast_contract": contract["forecast_contract"],
-                     "feature_config": feature_config, "strategy_version": STRATEGY_VERSION})
+    names = contract["feature_names"]
+    if observed_only:
+        selected_names = MODEL_FEATURES + STRATEGY_FEATURES if observed_only == "strategies" else MODEL_FEATURES
+        indices = [names.index(name) for name in selected_names]
+        train.x, calibration.x = train.x[:, indices], calibration.x[:, indices]
+        names = selected_names
+    artifact = fit(train, calibration, "logistic", names)
+    if not observed_only:
+        artifact.update({"forecast_contract": contract["forecast_contract"],
+                         "feature_config": feature_config, "strategy_version": STRATEGY_VERSION})
     artifact["model_version"] = digest(artifact)[:16]
     return artifact
 
 
-def evaluate_research(dataset, reviewer_names, output, folds=5, max_decisions=0, reviewers=None):
+def evaluate_research(dataset, reviewer_names, output, folds=5, max_decisions=0, reviewers=None,
+                      allow_unknown_cutoff=False):
     if not 5 <= folds <= 12 or max_decisions < 0:
         raise ValueError("Use 5–12 chronological folds and a nonnegative decision budget")
     config = OrchestratorConfig(reviewers=reviewer_names)
@@ -160,11 +200,14 @@ def evaluate_research(dataset, reviewer_names, output, folds=5, max_decisions=0,
     providers = reviewers or {name: load_model(name) for name in reviewer_names}
     if set(providers) != set(reviewer_names):
         raise ValueError("Reviewer membership differs from the declared plan")
+    unknown = []
     for name, provider in providers.items():
         cutoff = getattr(provider, "trained_until", None)
         if cutoff is None:
-            raise ValueError(f"{name} lacks a known training cutoff; cannot claim chronological validation")
-        if cutoff >= manifest["boundaries"]["validation"]:
+            if not allow_unknown_cutoff or not max_decisions:
+                raise ValueError(f"{name} lacks a known training cutoff; cannot claim chronological validation")
+            unknown.append(name)
+        elif cutoff >= manifest["boundaries"]["validation"]:
             raise ValueError(f"{name} overlaps validation; train a reviewer on the research train/calibration partitions")
     providers = {name: MemoizedReviewer(provider, f"artifacts/research/reviewer-cache-{provider.version}.jsonl")
                  for name, provider in providers.items()}
@@ -192,6 +235,9 @@ def evaluate_research(dataset, reviewer_names, output, folds=5, max_decisions=0,
             "reviewers": {n: p.version for n, p in providers.items()},
             "policy": config.model_dump(), "selection": "No selection or automatic activation",
             "prospective": False, "declared_at": int(time.time() * 1000)}
+    plan.update({"unknown_foundation_cutoff_reviewers": unknown,
+                 "reviewer_chronology_certified": not unknown,
+                 "benchmark_contract": "matched-policy-ablation-v2"})
     plan_path.write_text(json.dumps(plan, indent=2) + "\n")
     report = {"mode": "decision_only", "real_execution_enabled": False, "plan": plan,
               "dataset_manifest": manifest, "feature_diagnostics": feature_diagnostics(records),
@@ -208,7 +254,10 @@ def evaluate_research(dataset, reviewer_names, output, folds=5, max_decisions=0,
     for index, (start, end) in enumerate(intervals):
         artifact = _artifact(data, start, manifest, manifest["feature_config"])
         primary = HybridModel(artifact=artifact, forecaster=forecaster)
-        members = {"numerical": primary, "momentum": BaselineModel(), "strategy": StrategyModel()}
+        observed = DecisionModel(artifact=_artifact(data, start, manifest, {}, observed_only=True))
+        observed_strategies = ObservedStrategyModel(artifact=_artifact(data, start, manifest, {}, observed_only="strategies"))
+        members = {"observed_numerical": observed, "observed_strategies": observed_strategies, "numerical": primary,
+                   "cash": CashModel(), "momentum": BaselineModel(), "strategy": StrategyModel()}
         for size in range(1, len(reviewer_names) + 1):
             for subset in itertools.combinations(reviewer_names, size):
                 members["consensus_" + "_".join(subset)] = Orchestrator(
@@ -225,7 +274,9 @@ def evaluate_research(dataset, reviewer_names, output, folds=5, max_decisions=0,
         entry["validation_labels_last"] = max(examples[key]["outcome"]["observed_at"]
                                                for key in interval_schedule)
         for name, model in members.items():
-            entry["models"][name] = {}
+            entry["models"][name] = {"model_version": getattr(model, "version", model.name),
+                                    "feature_names": getattr(model, "feature_names", None),
+                                    "trained_until": getattr(model, "trained_until", None)}
             for cost_mode in ("normal", "double_cost"):
                 risk = RiskConfig.model_validate(manifest["risk_config"]).model_copy(update={"allow_research": True})
                 if cost_mode == "double_cost":
@@ -238,7 +289,8 @@ def evaluate_research(dataset, reviewer_names, output, folds=5, max_decisions=0,
                 entry["models"][name][cost_mode] = {"per_asset": summary,
                     "mean_account_return": float(np.mean([s["return"] for s in summary.values()])),
                     "ledger": str(path), "ledger_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
-                    "diagnostics": decision_diagnostics(decisions)}
+                    "diagnostics": decision_diagnostics(decisions),
+                    "operations": scorecard(decisions)}
                 if phase == "validation":
                     closed[name] = closed.get(name, 0) + (sum(s["closed_trades"] for s in summary.values())
                                                          if cost_mode == "normal" else 0)
@@ -268,7 +320,7 @@ def evaluate_research(dataset, reviewer_names, output, folds=5, max_decisions=0,
             effective_time_blocks=paired["effective_blocks"], block_days=paired["block_days"],
             horizon_dependency_days=horizon_days,
             directional_samples=reliability["samples"], minimum_decision_bin=reliability["minimum_populated_bin"],
-            directional_ece=reliability["ece"], probability_calibrated_on_past=name == "numerical",
+            directional_ece=reliability["ece"], probability_calibrated_on_past=name in ("numerical", "observed_numerical", "observed_strategies"),
             purged_boundaries=all(f["fit_labels_last"] < f["calibration_labels_last"] < f["start"]
                                  and f["validation_labels_last"] < f["end"] for f in report["folds"]))
         report["candidates"][name] = {"diagnostics": diagnostics, "closed_trades": closed[name],

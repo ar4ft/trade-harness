@@ -1,0 +1,198 @@
+{
+  "mode": "research_only",
+  "real_execution_enabled": false,
+  "casebook": {
+    "contract": "training-casebook-v1",
+    "sources": [
+      {
+        "path": "artifacts/research/examples-v2.jsonl",
+        "sha256": "1c06ee5a4fbdbf1dd13bb98b38ddca6a2e2f2d47492034a239e99098b1d8a575"
+      },
+      {
+        "path": "artifacts/research/doge-examples-v1.jsonl",
+        "sha256": "ce511531b90a96d69433cab3326cde9bbce0d3c03cd988334d2dd1e4ca2594d4"
+      }
+    ],
+    "cases": 57,
+    "sha256": "e86377bc64461a639fb99e583a8223a4425437f5e13cbd12b2435b6d58b19786",
+    "observed_tag_counts_all_phases": {
+      "flat_account": 1940,
+      "existing_long": 1940,
+      "sideways": 1330,
+      "positive_move_erased_by_costs": 700,
+      "high_volatility": 112,
+      "observed_drawdown": 530,
+      "price_spike": 44
+    },
+    "selected_case_counts": {
+      "existing_long": 23,
+      "positive_move_erased_by_costs": 19,
+      "sideways": 16,
+      "flat_account": 32,
+      "high_volatility": 11,
+      "observed_drawdown": 12,
+      "price_spike": 8
+    },
+    "review_phase": "train_only",
+    "human_review_completed": false,
+    "case_criteria_sha256": "61a27cad5b224f89f784071df196174d7da100f51a8b0ad66b46fea32b878aa0",
+    "limitations": [
+      "Tag-based sampling changes class mix; it is not a trading benchmark.",
+      "Cost-erased tag uses a later outcome and must remain outside inference inputs.",
+      "Synthetic input fixtures are excluded from supervised market training.",
+      "Reviewed actions are pending; no expert labels are claimed or automatically applied."
+    ]
+  },
+  "new_asset_dataset": {
+    "schema_version": 1,
+    "prompt_contract": "shared-evidence-v2",
+    "label_contract": "next-open-horizon-close-cost-aware-long-cash-v1",
+    "source": "historical_automatic_labels",
+    "prospective": false,
+    "dataset_sha256": "ce511531b90a96d69433cab3326cde9bbce0d3c03cd988334d2dd1e4ca2594d4",
+    "forecast_contract": {
+      "schema_version": 1,
+      "datasets": [
+        {
+          "path": "data/markets/DOGEUSDT-2024-1h.json",
+          "sha256": "ab2d5f1a0df3f8c264310e1c5eb46236382dde4666feab55643f344ff903fbfe",
+          "symbol": "DOGEUSDT",
+          "candles": 8784
+        },
+        {
+          "path": "data/markets/DOGEUSDT-2025-1h.json",
+          "sha256": "ae59e73c7cdf27c41a72d3fffeb0ef499b5a1ea031914676619ed3aebd255f47",
+          "symbol": "DOGEUSDT",
+          "candles": 8760
+        },
+        {
+          "path": "data/markets/DOGEUSDT-2026-1h.json",
+          "sha256": "6622422c897dc980600355ae43d3bd4ec5208813ed5b19f190242a40d2a62064",
+          "symbol": "DOGEUSDT",
+          "candles": 5832
+        }
+      ],
+      "stride": 48,
+      "context_length": 100,
+      "model_version": "timesfm3-43046b85ec22d584a13f8098c2ed39c889e129c2-ctx100-interval-policy-v1",
+      "strategy_version": "trend-breakout-reversion-v1",
+      "cache_sha256": "db01fb339f71b0a47bb539a8fe555b4bf3617da860fa4131b190a879d785fa77"
+    },
+    "risk_config": {
+      "initial_cash": 10000,
+      "fee_bps": 10,
+      "slippage_bps": 5,
+      "max_position_fraction": 0.2,
+      "risk_per_trade": 0.005,
+      "stop_atr_multiple": 2,
+      "min_stop_fraction": 0.01,
+      "max_stop_fraction": 0.08,
+      "reward_risk_ratio": 2,
+      "daily_loss_limit": 0.02,
+      "max_drawdown": 0.1,
+      "max_consecutive_losses": 3,
+      "cooldown_candles": 3,
+      "max_holding_candles": 3,
+      "min_confidence": 0.55,
+      "min_net_edge": 0.001,
+      "max_volatility": 0.08,
+      "max_candle_age_intervals": 1.5,
+      "max_quote_age_ms": 30000,
+      "max_entry_gap_fraction": 0.01,
+      "allow_research": false
+    },
+    "feature_config": {},
+    "timeframe": "1h",
+    "horizon": 3,
+    "symbols": [
+      "DOGEUSDT"
+    ],
+    "boundaries": {
+      "calibration": 1746244799999,
+      "validation": 1754711999999,
+      "test": 1771473599999
+    },
+    "purged_snapshots": 0,
+    "feature_names": [
+      "return_1",
+      "return_5",
+      "return_20",
+      "volatility_20",
+      "range_1",
+      "volume_ratio",
+      "sma_distance",
+      "rsi_scaled",
+      "macd_scaled",
+      "atr_scaled",
+      "return_3",
+      "return_10",
+      "volatility_5",
+      "body",
+      "upper_wick",
+      "lower_wick",
+      "volume_delta",
+      "rsi_delta_3",
+      "hour_sin",
+      "hour_cos",
+      "weekday_sin",
+      "weekday_cos",
+      "trend_direction",
+      "trend_strength",
+      "breakout_direction",
+      "breakout_strength",
+      "reversion_direction",
+      "reversion_strength",
+      "strategy_agreement",
+      "no_trade_strength",
+      "forecast_return",
+      "forecast_lower",
+      "forecast_upper",
+      "forecast_width",
+      "forecast_vs_momentum"
+    ],
+    "partitions": {
+      "train": {
+        "examples": 484,
+        "labels": {
+          "HOLD": 318,
+          "BUY": 88,
+          "SELL": 78
+        }
+      },
+      "calibration": {
+        "examples": 98,
+        "labels": {
+          "HOLD": 66,
+          "SELL": 17,
+          "BUY": 15
+        }
+      },
+      "validation": {
+        "examples": 194,
+        "labels": {
+          "BUY": 26,
+          "HOLD": 130,
+          "SELL": 38
+        }
+      },
+      "test": {
+        "examples": 194,
+        "labels": {
+          "HOLD": 146,
+          "BUY": 26,
+          "SELL": 22
+        }
+      }
+    },
+    "limitations": [
+      "Future-return labels are automatic supervision, not expert judgments.",
+      "Labels estimate a horizon trade, not path-dependent stop/target profitability.",
+      "Flat and long views of one timestamp always share a partition.",
+      "Previous feedback follows a fixed trend hypothesis, not reviewer self-play.",
+      "Historical evidence; unknown foundation pretraining overlap."
+    ]
+  },
+  "new_hourly_candles": 23376,
+  "total_hourly_candles": 93504,
+  "human_review_completed": false
+}

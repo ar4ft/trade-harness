@@ -164,7 +164,7 @@ def test_full_replay_reports_abstention_costs_and_unavailable_edge(dataset, tmp_
     report = evaluate_research(str(dataset), ["local-llm"], output, folds=5,
                                max_decisions=1, reviewers={"local-llm": ControlledReviewer()})
     assert len(report["folds"]) == 5 and report["final_test"]
-    assert set(report["candidates"]) == {"numerical", "momentum", "strategy", "consensus_local-llm"}
+    assert set(report["candidates"]) == {"observed_numerical", "observed_strategies", "numerical", "cash", "momentum", "strategy", "consensus_local-llm"}
     for candidate in report["candidates"].values():
         assert not candidate["promotion"]["accepted"]
         assert "fresh_locked_forward_period" in candidate["promotion"]["failed_gates"]

@@ -129,6 +129,21 @@ class LanguageModel:
 
 def load_model(backend=None):
     backend = backend or os.environ.get("TRADING_BACKEND", "orchestrator")
+    model = _load_model(backend)
+    paths = json.loads(os.environ.get("TRADING_REVIEWER_CALIBRATIONS", "{}"))
+    if not isinstance(paths, dict):
+        raise ValueError("Reviewer calibrations must be a JSON backend-to-artifact mapping")
+    if backend in paths:
+        if backend not in ("local-llm", "llamafile", "llm", "nimble", "ollaya", "clef", "clef-flash"):
+            raise ValueError("Temperature artifacts apply to probabilistic reviewers, not consensus")
+        from .reviewer_calibration import CalibratedReviewer
+
+        model = CalibratedReviewer(model, paths[backend])
+    return model
+
+
+def _load_model(backend=None):
+    backend = backend or os.environ.get("TRADING_BACKEND", "orchestrator")
     if backend == "orchestrator":
         from .orchestrator import Orchestrator
 

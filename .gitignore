@@ -1,5 +1,7 @@
 .venv/
 .clef-venv/
+.gpu-harness-venv/
+.gpu-native-venv/
 __pycache__/
 *.pyc
 .pytest_cache/

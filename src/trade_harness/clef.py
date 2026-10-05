@@ -128,6 +128,9 @@ class ClefModel:
         )
         # Neither a public release date nor the separate numerical model's cutoff is a known foundation fitting cutoff.
         self.trained_until = None
+        self.custom_head = (self.manifest or {}).get("custom_head")
+        if self.custom_head and self.custom_head["raw_context_candles"] != self.context_candles:
+            raise ValueError("Native head raw context differs from the trained contract")
 
     def _manifest(self):
         with httpx.Client(timeout=5) as client:
@@ -152,6 +155,13 @@ class ClefModel:
     def predict(self, market, history, evidence=None):
         if self.manifest is not None and self._manifest() != self.manifest:
             raise ValueError("Clef service changed after model declaration")
+        if self.custom_head and (
+            evidence is None or market.symbol not in self.custom_head["symbols"]
+            or (market.timeframe, market.horizon) != (self.custom_head["timeframe"], self.custom_head["horizon"])
+            or market.timestamps[-1] <= self.custom_head["fine_tuned_until"]
+            or sorted(evidence.get("features", {})) != sorted(self.custom_head["feature_names"])
+        ):
+            raise ValueError("Market or shared evidence differs from the native head training contract")
         if evidence is None:
             if self.forecast_model is None:
                 from .learning import DecisionModel
@@ -184,7 +194,9 @@ class ClefModel:
             interval, source = source.return_interval, evidence
         payload = {
             "model": self.model,
-            "state": review_state(market, history, source, context_candles=self.context_candles),
+            "state": review_state(market, history, source,
+                                  reference_costs=RiskConfig.model_validate(self.custom_head["risk_config"]) if self.custom_head else None,
+                                  context_candles=self.context_candles),
             "questions": QUESTIONS,
         }
         raw = json.dumps(

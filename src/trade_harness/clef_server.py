@@ -6,23 +6,32 @@ harness's Transformers 4 environment. Importing it does not load/download weight
 
 import argparse
 import hashlib
-import importlib.metadata
-import importlib.util
 import json
 import os
 import secrets
-import sys
 import threading
+import time
+from collections import deque
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 
-from .clef_contract import CONTRACT, MAX_REQUEST_BYTES, RELEASES
+from .clef_contract import CONTRACT, MAX_REQUEST_BYTES, QUESTIONS, RELEASES
+
+SERVER_SHA256 = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
 
 
-def create_app(model, processor, manifest, encode_record, systemone, api_key=""):
+def create_app(model, processor, manifest, encode_record, systemone, api_key="", startup_metrics=None):
     app = FastAPI(title="Pinned Clef research service")
     lock = threading.Lock()
+    metrics_lock = threading.Lock()
+    durations = deque(maxlen=512)
+    stats = {"attempted": 0, "succeeded": 0, "rejected": 0, "failed": 0}
+
+    def record(status, started):
+        with metrics_lock:
+            stats[status] += 1
+            durations.append((time.monotonic() - started) * 1000)
 
     def authorized(authorization: str | None = Header(default=None)):
         if api_key and not secrets.compare_digest(authorization or "", "Bearer " + api_key):
@@ -32,8 +41,20 @@ def create_app(model, processor, manifest, encode_record, systemone, api_key="")
     def metadata():
         return manifest
 
+    @app.get("/metrics", dependencies=[Depends(authorized)])
+    def metrics():
+        from .operations import quantiles
+
+        with metrics_lock:
+            return {"contract": "clef-service-metrics-v1", "startup": startup_metrics or {},
+                    "requests": dict(stats), "request_duration": quantiles(list(durations)),
+                    "latency_scope": "Queue, validation, tokenization and native scoring; last 512 completed requests"}
+
     @app.post("/v1/systemone", dependencies=[Depends(authorized)])
     def decide(request: dict):
+        started = time.monotonic()
+        with metrics_lock:
+            stats["attempted"] += 1
         if (
             request.get("model") != manifest["model"]
             or "state" not in request
@@ -41,18 +62,18 @@ def create_app(model, processor, manifest, encode_record, systemone, api_key="")
             or not 1 <= len(request["questions"]) <= 64
             or set(request) != {"model", "state", "questions"}
         ):
+            record("rejected", started)
             raise HTTPException(
                 status_code=422,
                 detail="Use the loaded model with text/JSON state and typed questions",
             )
-        if (
-            len(
-                json.dumps(
-                    request, ensure_ascii=True, allow_nan=False, separators=(",", ":")
-                ).encode()
-            )
-            > MAX_REQUEST_BYTES
-        ):
+        try:
+            raw = json.dumps(request, ensure_ascii=True, allow_nan=False, separators=(",", ":")).encode()
+        except (ValueError, TypeError) as error:
+            record("rejected", started)
+            raise HTTPException(status_code=422, detail="State must contain finite JSON values") from error
+        if len(raw) > MAX_REQUEST_BYTES:
+            record("rejected", started)
             raise HTTPException(status_code=422, detail="Complete-state byte budget exceeded")
         try:
             with lock:
@@ -66,11 +87,31 @@ def create_app(model, processor, manifest, encode_record, systemone, api_key="")
                 )
                 if len(encoded.input_ids) > manifest["max_length"]:
                     raise ValueError("State exceeds the complete-input token budget")
+                head = manifest.get("custom_head")
+                if head:
+                    state, market = request["state"], request["state"]["market"]
+                    costs = state["reference_costs"]
+                    risk = head["risk_config"]
+                    if (request["questions"] != QUESTIONS
+                            or market["symbol"] not in head["symbols"]
+                            or market["timeframe"] != head["timeframe"] or market["horizon"] != head["horizon"]
+                            or market["timestamps"][-1] <= head["fine_tuned_until"]
+                            or state["input_scope"]["raw_context_candles"] != head["raw_context_candles"]
+                            or sorted(state["shared_evidence"]["features"]) != sorted(head["feature_names"])
+                            or costs["fee_bps_per_side"] != risk["fee_bps"]
+                            or costs["slippage_bps_per_side"] != risk["slippage_bps"]
+                            or costs["minimum_net_edge"] != risk["min_net_edge"]):
+                        raise ValueError("Native head input differs from its trained scope")
                 answer = systemone(model, processor, request, max_length=manifest["max_length"])
         except (ValueError, KeyError, TypeError) as error:
+            record("rejected", started)
             raise HTTPException(
                 status_code=422, detail="Invalid or over-budget state/schema"
             ) from error
+        except Exception as error:  # noqa: BLE001 - native failures counted without exposing internals
+            record("failed", started)
+            raise HTTPException(status_code=500, detail="Native inference failed") from error
+        record("succeeded", started)
         return {**answer, "provenance": manifest, "state_truncated": False}
 
     return app
@@ -81,6 +122,7 @@ def main():
         description="Pinned native Clef server; requires a separate GPU runtime"
     )
     parser.add_argument("--model", choices=RELEASES, default="clef-flash")
+    parser.add_argument("--head-path", help="Explicit native head artifact; never activated automatically")
     parser.add_argument("--revision", help="Immutable 40-character upstream snapshot revision")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=11436)
@@ -118,63 +160,29 @@ def main():
             parser.error(str(error))
         print(json.dumps(report, indent=2))
         return 0 if report["ready_for_fresh_deployment"] else 2
-    import torch
+    from .clef_runtime import load_native
 
-    torch.set_num_threads(args.threads)
-    from huggingface_hub import snapshot_download
-
-    repo = RELEASES[args.model][0]
-    path = Path(
-        snapshot_download(
-            repo,
-            revision=revision,
-            cache_dir=args.cache_dir,
-            local_files_only=args.offline,
-            max_workers=2,
-        )
+    started = time.monotonic()
+    model, processor, upstream, runtime = load_native(
+        args.model, args.device, args.quantization, args.cache_dir, args.offline,
+        revision, args.threads, args.head_path,
     )
-    spec = importlib.util.spec_from_file_location(
-        "clef_release_" + revision, path / "joint_schema_model.py"
-    )
-    upstream = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = upstream
-    spec.loader.exec_module(upstream)
-    kwargs = {}
-    packages = ["torch", "transformers"]
-    if args.quantization == "nf4":
-        from transformers import BitsAndBytesConfig
-
-        # Keep lm_head dense: the joint head reads its lexical embedding rows directly.
-        kwargs["quantization_config"] = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_use_double_quant=True,
-            bnb_4bit_compute_dtype=torch.bfloat16,
-            llm_int8_skip_modules=["lm_head"],
-        )
-        packages.append("bitsandbytes")
-        try:
-            importlib.metadata.version("kernels")
-        except importlib.metadata.PackageNotFoundError:
-            pass
-        else:
-            packages.append("kernels")
-    model, processor = upstream.load_release_model(path, device=args.device, **kwargs)
-    if model.language_model.get_output_embeddings().weight.dtype == torch.uint8:
-        raise ValueError("The native lexical head needs dense output embedding rows")
     manifest = {
-        "model": args.model,
-        "repository": repo,
-        "revision": revision,
-        "contract": CONTRACT,
-        "input_truncation": "reject",
+        **runtime, "contract": CONTRACT, "input_truncation": "reject",
         "max_length": args.max_length,
-        "server_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "runtime": {package: importlib.metadata.version(package) for package in packages},
-        "quantization": args.quantization,
-        "device": args.device,
-        "threads": args.threads,
+        "server_sha256": SERVER_SHA256,
     }
+    import resource
+
+    startup = {"cold_load_ms": (time.monotonic() - started) * 1000,
+               "process_peak_rss_kib": resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+               "device": args.device, "quantization": args.quantization}
+    if args.device.startswith("cuda"):
+        import torch
+
+        startup["gpu_allocated_bytes"] = torch.cuda.memory_allocated(args.device)
+        startup["gpu_reserved_bytes"] = torch.cuda.memory_reserved(args.device)
+        startup["gpu_peak_allocated_bytes"] = torch.cuda.max_memory_allocated(args.device)
     app = create_app(
         model,
         processor,
@@ -182,6 +190,7 @@ def main():
         upstream.encode_record,
         upstream.systemone,
         api_key=os.environ.get("CLEF_API_KEY", ""),
+        startup_metrics=startup,
     )
     import uvicorn
 

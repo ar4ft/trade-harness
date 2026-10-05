@@ -15,7 +15,7 @@ from .risk import Quote, RiskConfig
 from .schemas import Decision, Feedback, MarketInput, StrictModel
 from .storage import Store
 
-app = FastAPI(title="Trade Harness", version="0.9.1")
+app = FastAPI(title="Trade Harness", version="0.10.0")
 
 
 @lru_cache
@@ -32,6 +32,24 @@ def runtime():
 @app.get("/health")
 def health():
     return {"status": "ok", "mode": "decision_only", "real_execution_enabled": False}
+
+
+@app.get("/operations")
+def operational_scorecard(
+    source: str = "paper",
+    limit: int = Query(default=2000, ge=1, le=10000),
+    scope: str | None = None,
+):
+    from .operations import database_scorecard
+
+    if source not in ("paper", "decisions"):
+        raise HTTPException(status_code=422, detail="Choose paper or decisions")
+    path = (
+        os.environ.get("TRADING_PAPER_DB", "paper.sqlite")
+        if source == "paper"
+        else os.environ.get("TRADING_DB", "decisions.sqlite")
+    )
+    return database_scorecard(path, limit, scope)
 
 
 @app.get("/validation")

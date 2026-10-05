@@ -196,9 +196,33 @@ The full-model export has 2,910 examples with 100 declared raw candles; its [man
 
 The exporter converts the immutable multi-asset paired flat/long examples into native `request.state/questions`, separate `targets.direction`, and separate outcomes. It uses the runtime state builder and the same declared `CLEF_CONTEXT_CANDLES`, preserves global train/calibration/validation/test phases and purges, and records source hashes, reference costs and position-aware labels. Forward **only** `request` for inference. No evidence-sufficiency or risk labels are invented from direction outcomes; those need separately defined/reviewed annotation criteria.
 
-This export does not fine-tune Clef, and our SmolLM chat trainer cannot train its joint head. Native training would fit the head/adapters with categorical targets and a probability loss, retain separate later calibration, account for class imbalance and long/cash costs, and record rejected experiments. Cloudflare describes a fine-tuning partner service and planned self-service RL tooling, not a turnkey local trading trainer. Validate labels and simple baselines before optimizing an RL reward; agreement or profit on an already examined period is insufficient.
+Export alone does not fine-tune Clef. The compatible `trade_harness.clef_training` module now trains its native joint head with a frozen backbone, preserving all three runtime questions and the exact complete state renderer. It reconstructs every request from the verified original dataset and rejects drift or hidden future targets. Direction-only categorical cross-entropy uses training-phase targets and train-only class weights; evidence-sufficiency and risk fields receive no invented supervision. This is supervised head training, not RL or backbone LoRA. Our SmolLM chat trainer remains incompatible with Clef's head.
 
-### Example export, future training and acceptance
+Use the separate native environment described above. The default residual scope updates the residual scorer and joint/prior scaling parameters, retaining the other head weights; `--head-scope full` explicitly trains the entire head and requires more memory. The dense lexical output projection remains intact under NF4, and the head computes in FP32. The trainer records the plan before optimization, actual steps, weight/source/runtime hashes and later evaluation results. It copies the upstream Apache 2.0 license with the head artifact.
+
+```bash
+# Match the declared raw window in export, training and serving.
+CLEF_CONTEXT_CANDLES=21 trade-harness export-clef \
+  --dataset artifacts/research/examples-v2.jsonl --backend clef-flash \
+  --output artifacts/research/flash-native-v1.jsonl
+
+.clef-venv/bin/python -m trade_harness.clef_training \
+  --dataset artifacts/research/flash-native-v1.jsonl \
+  --source-dataset artifacts/research/examples-v2.jsonl \
+  --model clef-flash --device cuda --quantization nf4 \
+  --head-scope residual --steps 120 --eval-samples 48 \
+  --output artifacts/research/flash-head-v1
+
+.clef-venv/bin/python -m trade_harness.clef_server \
+  --model clef-flash --device cuda --quantization nf4 \
+  --head-path artifacts/research/flash-head-v1 --port 11436
+```
+
+Add `--check` to the trainer to verify native/source contracts without loading weights; `--output` is still required but no artifact is created in check mode. Training and serving must use the same pinned variant and precision. `--eval-samples 0` deliberately produces no quality evaluation and is suitable only for a compatibility smoke. Default evaluation samples later phases for diagnostics and does not fit their labels. Artifacts remain uncalibrated and require a separate earlier-cohort [reviewer calibration](evidence-and-operations.md#calibrating-a-reviewer). A trained head rejects earlier timestamps, different questions, raw context, assets, feature names, horizon and reference costs. Activation is explicit through `--head-path`.
+
+Both variants share this trainer implementation. Only Flash has completed an actual optimizer/serving smoke here: one residual step, 4,196,356 trainable parameters, no held-out quality evaluation. Full Clef training remains unmeasured. See [actual evidence and the manual GPU workflow](evidence-and-operations.md#gpu-deployment-and-native-training). Validate labels and simple baselines before optimizing an RL reward; agreement or profit on an already examined period is insufficient.
+
+### Example export, native training and acceptance
 
 ```mermaid
 flowchart TD
@@ -208,22 +232,24 @@ flowchart TD
     Request --> Export["Versioned native JSONL and content manifest"]
     Targets --> Export
     Request --> Inference["Forward only request to native inference"]
-    Export -.-> Trainer["Future compatible head / adapter trainer; not implemented"]
-    Trainer -.-> Calibrate["Separate later probability calibration"]
-    Calibrate -.-> Candidate["Freeze weights, questions, runtime and policy"]
-    Candidate -.-> Lock["Declare fixed fresh-forward endpoint"]
-    Lock -.-> Capture["Record predictions before outcomes; matched paper baselines"]
-    Capture -.-> Gate["Coverage, cost stress, paired edge and calibration checks"]
-    Gate -.-> Review["Explicit reviewed candidate selection if all checks pass"]
+    Export --> Trainer["Frozen-backbone native joint-head trainer"]
+    Trainer --> Calibrate["Separate later probability calibration"]
+    Calibrate --> Candidate["Freeze weights, questions, runtime and policy"]
+    Candidate --> Lock["Declare fixed fresh-forward endpoint"]
+    Lock --> Capture["Record predictions before outcomes, matched paper baselines"]
+    Capture --> Gate["Coverage, cost stress, paired edge and calibration checks"]
+    Gate --> Review["Explicit reviewed candidate selection if all checks pass"]
 ```
 
-Solid export/inference paths exist today. Dashed paths describe work still needed for an accepted, trained Clef candidate. Native head/adapter training is unimplemented; locked forward collection and acceptance tools exist in the harness, but have no accepted Clef evidence. There is no automatic Clef training or activation. BUY/SELL/HOLD targets come from cost-aware flat/long outcomes, not ensemble agreement. Class imbalance and constant HOLD require directional diagnostics. Native export does not supply invented sufficiency/risk targets.
+The export, trainer, calibration, deployment and locked-forward tools exist; an accepted Clef experiment does not. Actual training/serving establishes compatibility only. There is no automatic Clef training or activation. BUY/SELL/HOLD targets come from cost-aware flat/long outcomes, not ensemble agreement. Class imbalance and constant HOLD require directional diagnostics. Native export does not supply invented sufficiency/risk targets.
 
 For fresh acceptance, the current three-hour horizon requires a fixed 140-day observation period, five completed windows, at least 100 closed trades, at least 20 effective time blocks, calibrated directional scores and positive paired edge against cash/momentum under normal and stressed costs. All planned assets must qualify under the [complete acceptance criteria](research-workflow.md#acceptance-criteria). An unknown foundation training cutoff blocks certified retrospective chronology even with pinned weights. Current Flash scores are uncalibrated and neither variant meets promotion criteria.
 
 ## Evaluation and verification
 
 A release revision is **not** a known foundation training cutoff. `evaluate-research` refuses to label the existing historical period uncontaminated chronological validation for this adapter. A pinned self-hosted snapshot can be locked for [fresh forward observation](research-workflow.md), with the existing cost/stress, calibration, per-asset and fixed-endpoint acceptance criteria. Changed code, questions, weights or risk settings require a new experiment. Snapshot identity alone does not establish calibrated scores or trading edge.
+
+For a deliberately bounded historical operational audit, use `evaluate-research --allow-unknown-cutoff --max-decisions N` and label chronology uncertified. It cannot promote a model or substitute for the fresh-forward comparison. Native service `/metrics` exposes loading, memory, success/rejection/failure counts and recent request timing; it uses the same optional service bearer authentication and stays outside immutable model identity. The [manual GPU workflow](../.github/workflows/clef-gpu-benchmark.yml) measures declared complete requests without forwarding labels.
 
 Tests cover both hosted selectors, native rounding/validation, forecast independence, future-feedback exclusion, drift, input overflow, authentication, consensus and failure-to-HOLD behavior. The CPU native export contains 2,910 paired examples across BTC/ETH/SOL, with 1,452 train, 294 calibration, 582 validation and 582 test examples.
 

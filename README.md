@@ -2,7 +2,7 @@
 
 A decision-only CLI, HTTP API, and browser dashboard for trading research. Pass closed OHLC candles, volume, aligned indicators, symbol, timeframe, and decision history. Receive BUY / SELL / HOLD proposals, individual model scores, a return forecast, projected price, and a separate risk-controlled execution decision.
 
-Includes **70,128 real hourly candles across BTCUSDT, ETHUSDT, and SOLUSDT**, trained numerical model weights, and a custom SmolLM2 language-model LoRA adapter. Jev/TypeSafe-style typed fields expose direction, execution, risk level, regime, and rule results with their sources.
+Includes **93,504 real hourly candles across BTCUSDT, ETHUSDT, SOLUSDT and DOGEUSDT**, trained numerical model weights, and a custom SmolLM2 language-model LoRA adapter. Shipped model contracts retain their original assets; DOGE is additional research data. Jev/TypeSafe-style typed fields expose direction, execution, risk level, regime, and rule results with their sources.
 
 The model has **not demonstrated a profitable walk-forward edge**. Default risk policy blocks new entries from research models. `--research` explicitly enables simulated entries. SELL closes a long position; this version supports long/cash paper trading, with no exchange order placement, leverage, or shorts.
 
@@ -100,7 +100,13 @@ They review the same causal evidence and retain advisory evidence/risk scores. H
 
 The full snapshot is about 55 GB before loading. Run the no-download `--check` on the intended host first; conservative memory recommendations and separate runtime installation are in [Clef deployment](docs/clef.md#full-clef-27b-alongside-flash). The application remains a Python CLI/API with a browser dashboard. Clef runs in a separate service environment.
 
-Native example export is available for both variants, with 2,910 paired position-aware examples. Exporting examples does not train Clef. Trading scores remain uncalibrated and no Clef edge has been established.
+Native example export and a compatible frozen-backbone joint-head trainer are available for both variants. Flash completed a real one-step residual-head training and serving smoke on CPU; no quality improvement is claimed. Trading scores remain uncalibrated and no Clef edge has been established. See [native training](docs/clef.md#native-examples-and-fine-tuning).
+
+## Evidence and operational reliability
+
+The [seven-candidate controlled comparison](docs/evidence-and-operations.md#what-was-actually-measured) isolates observed features, fixed strategies, TimesFM and contextual language review against cash/momentum. Every candidate fails promotion. The small positive strategy result has only three closed trades; consensus abstains throughout.
+
+Version 0.10.0 adds difficult-case review exports, identity-bound past-only reviewer calibration, a manual GPU training/benchmark workflow, and read-only CLI/API operational scorecards. Actual Flash head serving took 193.52 seconds on CPU. GPU measurement, real Clef calibration and human label review remain outstanding. Follow [evidence, training and operations](docs/evidence-and-operations.md) for commands, measurements and acceptance criteria.
 
 ## TimesFM 3.0 forecasts
 
@@ -178,19 +184,19 @@ The harness exposes `choice`, `noul` (0–1), and ordinal `score` fields. Probab
 
 ## Data, training, and measured results
 
-[data/markets](data/markets) contains 2024, 2025, and January–August 2026 hourly archives for BTC, ETH, and SOL. Each annual file has archive URLs and SHA256 provenance alongside it. All downloads verified the Binance archive checksums. The older BTC-only dataset is retained for reproducing the language adapter.
+[data/markets](data/markets) contains 2024, 2025, and January–August 2026 hourly archives for BTC, ETH, SOL and DOGE. Each annual file has archive URLs and SHA256 provenance alongside it. All downloads verified the Binance archive checksums. The older BTC-only dataset is retained for reproducing the language adapter.
 
 ```bash
 trade-harness fetch --symbol ETHUSDT --timeframe 1h \
   --start 2024-01 --end 2024-12 --output data/markets/ETHUSDT-2024-1h.json
-trade-harness evaluate --data-dir data/markets --output reports/walk-forward.json
-# Equivalent shipped-model rebuild:
-python scripts/train_decision_models.py
+trade-harness evaluate --data-dir data/markets \
+  --output artifacts/research/four-asset-evaluation.json \
+  --model-output artifacts/research/four-asset-candidate.json
 ```
 
 The expanded trainer uses 22 causal features, including indicators, returns, volatility, candle shape, volume changes, and calendar cycles. It compares logistic/Ridge and boosted classifier/regressor models through three purged chronological walk-forward folds. Temperature calibration uses a later, separately purged calibration partition. Shared timestamp boundaries keep all assets on the same side of splits. The final 20% is reserved for testing and cannot promote a model. Artifacts use portable JSON coefficients/trees, without executable pickle files.
 
-Exact results: [reports/walk-forward.json](reports/walk-forward.json).
+The CLI saves its numerical candidate under `artifacts/research` by default; use `--model-output` for an explicit destination. It does not replace shipped weights automatically. The older `scripts/train_decision_models.py` explicitly rebuilds package weights using every downloaded asset, so adding DOGE changes its fitted universe. The following unchanged historical results used BTC/ETH/SOL: [reports/walk-forward.json](reports/walk-forward.json).
 
 | Selected boosted model | Result |
 | --- | --- |

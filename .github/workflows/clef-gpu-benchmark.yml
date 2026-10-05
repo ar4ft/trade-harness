@@ -1,0 +1,122 @@
+name: Native Clef GPU research
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Pinned native variant; compare variants in separate runs
+        type: choice
+        options: [clef-flash, clef]
+        default: clef-flash
+      quantization:
+        type: choice
+        options: [nf4, none]
+        default: nf4
+      context_candles:
+        description: Declared raw context (feature/forecast history remains 100)
+        type: choice
+        options: ['21', '100']
+        default: '100'
+      train_steps:
+        description: Optional residual-head steps; 0 benchmarks upstream weights
+        type: number
+        default: 0
+      max_requests:
+        description: Predeclared complete benchmark requests (1-100)
+        type: number
+        default: 10
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-clef-gpu-research
+  cancel-in-progress: false
+
+jobs:
+  research:
+    # User-supplied runner; this workflow does not provision a paid GPU.
+    runs-on: [self-hosted, linux, x64, gpu]
+    timeout-minutes: 180
+    env:
+      NATIVE_MODEL: ${{ inputs.model }}
+      NATIVE_QUANTIZATION: ${{ inputs.quantization }}
+      CLEF_CONTEXT_CANDLES: ${{ inputs.context_candles }}
+      NATIVE_TRAIN_STEPS: ${{ inputs.train_steps }}
+      NATIVE_REQUESTS: ${{ inputs.max_requests }}
+      OMP_NUM_THREADS: '4'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare separate harness and native environments
+        run: |
+          python3 -m venv .gpu-harness-venv
+          .gpu-harness-venv/bin/pip install -e '.[dev,orchestrator]'
+          python3 -m venv .gpu-native-venv
+          .gpu-native-venv/bin/pip install 'torch==2.11.0' 'torchvision==0.26.0' \
+            'transformers==5.10.2' 'bitsandbytes==0.50.2' accelerate
+          .gpu-native-venv/bin/pip install -e .
+      - name: Check actual GPU and fresh-download planning budget
+        run: |
+          mkdir -p artifacts/gpu
+          PYTHONPATH=src .gpu-native-venv/bin/python -m trade_harness.clef_server \
+            --model "$NATIVE_MODEL" --device cuda --quantization "$NATIVE_QUANTIZATION" \
+            --cache-dir "$RUNNER_TEMP/clef-models" --check > artifacts/gpu/readiness.json
+      - name: Export purged causal examples and native requests
+        run: |
+          .gpu-harness-venv/bin/trade-harness export-research --data-dir data/markets \
+            --forecast-cache artifacts/gpu/forecasts.jsonl --output artifacts/gpu/examples.jsonl
+          .gpu-harness-venv/bin/trade-harness export-clef --dataset artifacts/gpu/examples.jsonl \
+            --backend "$NATIVE_MODEL" --output artifacts/gpu/native.jsonl
+      - name: Optional native residual-head training
+        run: |
+          python3 - <<'PY'
+          import os
+          steps = int(os.environ['NATIVE_TRAIN_STEPS'])
+          requests = int(os.environ['NATIVE_REQUESTS'])
+          assert 0 <= steps <= 100000 and 1 <= requests <= 100
+          PY
+          if [ "$NATIVE_TRAIN_STEPS" -gt 0 ]; then
+            PYTHONPATH=src .gpu-native-venv/bin/python -m trade_harness.clef_training \
+              --dataset artifacts/gpu/native.jsonl --source-dataset artifacts/gpu/examples.jsonl \
+              --model "$NATIVE_MODEL" --device cuda --quantization "$NATIVE_QUANTIZATION" \
+              --cache-dir "$RUNNER_TEMP/clef-models" --head-scope residual \
+              --steps "$NATIVE_TRAIN_STEPS" --eval-samples 0 --output artifacts/gpu/head
+          fi
+      - name: Measure native service on declared requests
+        run: |
+          HEAD_ARGS=()
+          if [ "$NATIVE_TRAIN_STEPS" -gt 0 ]; then
+            HEAD_ARGS=(--head-path artifacts/gpu/head)
+          fi
+          PYTHONPATH=src .gpu-native-venv/bin/python -m trade_harness.clef_server \
+            --model "$NATIVE_MODEL" --device cuda --quantization "$NATIVE_QUANTIZATION" \
+            --cache-dir "$RUNNER_TEMP/clef-models" --port 11437 "${HEAD_ARGS[@]}" \
+            > artifacts/gpu/service.log 2>&1 &
+          NATIVE_SERVER_PID=$!
+          trap 'kill "$NATIVE_SERVER_PID" 2>/dev/null || true' EXIT
+          .gpu-harness-venv/bin/python - <<'PY'
+          import time, urllib.request
+          for i in range(120):
+              try:
+                  urllib.request.urlopen('http://127.0.0.1:11437/metadata', timeout=2).close()
+                  break
+              except Exception:
+                  if i == 119:
+                      raise
+                  time.sleep(5)
+          PY
+          PYTHONPATH=src .gpu-harness-venv/bin/python -m trade_harness.clef_benchmark \
+            --dataset artifacts/gpu/native.jsonl --source-dataset artifacts/gpu/examples.jsonl \
+            --base-url http://127.0.0.1:11437 --max-requests "$NATIVE_REQUESTS" \
+            --timeout 600 --output artifacts/gpu/benchmark.json
+          .gpu-harness-venv/bin/python - <<'PY'
+          import json
+          report = json.load(open('artifacts/gpu/benchmark.json'))
+          assert report['actual_gpu_measurements'] and report['failed'] == 0, 'GPU benchmark probes failed'
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-clef-${{ inputs.model }}-${{ inputs.quantization }}-${{ inputs.context_candles }}
+          path: artifacts/gpu
+          if-no-files-found: warn

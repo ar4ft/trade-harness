@@ -6,6 +6,8 @@ This project returns recommendations and measures them through simulated replay.
 
 The default orchestrator has no independent walk-forward edge evidence and remains research-only. It does not inherit validation from the numerical anchor. Use `trade-harness validate --backend decision` to inspect the standalone numerical results summarized below, or `--backend hybrid` to inspect the hybrid artifact. `GET /validation` always reports the server's configured backend.
 
+The latest [matched seven-candidate comparison](evidence-and-operations.md#what-was-actually-measured) isolates observed features, strategies, TimesFM and contextual review. No candidate passes promotion. Native head compatibility, calibration fitting and service latency are separate measurements; none substitutes for accepted after-cost decision quality.
+
 ## What qualifies as evidence
 
 The trainer uses chronological, shared cross-asset boundaries. Features and normalization use available history; labels crossing fit/calibration/validation boundaries are purged. Validation folds do not overlap. The final 20% cannot choose the model, thresholds, or validation status.

@@ -100,6 +100,8 @@ class ModelVote(StrictModel):
     evidence_mode: str
     evidence_sha256: str
     review_details: dict = Field(default_factory=dict)
+    inference_ms: float | None = Field(default=None, ge=0)
+    cache_hit: bool = False
 
 
 class ConsensusEvidence(StrictModel):
@@ -168,6 +170,7 @@ class Decision(Proposal):
     proposed_action: Literal["BUY", "SELL", "HOLD"] | None = None
     execution: dict | None = None
     fields: dict = Field(default_factory=dict)
+    operational: dict = Field(default_factory=dict)
 
 
 class Feedback(StrictModel):

@@ -1,0 +1,73 @@
+{
+  "source": "Binance public spot monthly klines",
+  "symbol": "DOGEUSDT",
+  "timeframe": "1h",
+  "start_month": "2025-01",
+  "end_month": "2025-12",
+  "candles": 8760,
+  "downloaded_at": "2026-10-05T04:45:57.254581+00:00",
+  "archives": [
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-01.zip",
+      "sha256": "2a3be49b5e91ff396eac54b91114360586699a393d0d6178a767c41a5860de99",
+      "bytes": 38992
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-02.zip",
+      "sha256": "2175e7d1dd69c4349d1b45d427d43871492b8da141e398f01432db636949c7af",
+      "bytes": 34687
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-03.zip",
+      "sha256": "f60d351e755a03e4f1af3ed1eac8d15df8ffd31061824d571972b739eed83402",
+      "bytes": 37851
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-04.zip",
+      "sha256": "104604f7d287e5b1a856b6d0795f38d0a8e1cf56c902ba0c926d462441a2ac52",
+      "bytes": 36312
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-05.zip",
+      "sha256": "f5da2cbc4b23de2cbdd5513c27e081595535ff49e7f133ef2f687b6316e59ce7",
+      "bytes": 38099
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-06.zip",
+      "sha256": "1822cbf2d40ca371e441219d082042cbf55ed415c3c8fb3b99fa040d538afc07",
+      "bytes": 36037
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-07.zip",
+      "sha256": "2f089b8d4e9cbbd0b1ebd79f5639dc2b0165c8c16303bc06a054947c8531b036",
+      "bytes": 38321
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-08.zip",
+      "sha256": "20bc76ffb6c56632f2edc6d0ed8b010a660156cb65f4d07596cd751087c6d793",
+      "bytes": 38189
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-09.zip",
+      "sha256": "f8e656ae978eba09aa8980bdc5dc8912e4c5eb0311aa0b2cb4eee9feda6080ac",
+      "bytes": 36955
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-10.zip",
+      "sha256": "0ef51b722646174c57641fe6603a05b130afbe2f47df695f0f1d4c21ca04ca80",
+      "bytes": 38245
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-11.zip",
+      "sha256": "d576e47a290c7992a6392b7a3c3b3acc04427299f73cf95fd6894e4ddd75cff4",
+      "bytes": 36536
+    },
+    {
+      "url": "https://data.binance.vision/data/spot/monthly/klines/DOGEUSDT/1h/DOGEUSDT-1h-2025-12.zip",
+      "sha256": "01c3cf92a955ea881cb0266a407a57e9cc082c2b1de24e6d5296ced7fc765f63",
+      "bytes": 36605
+    }
+  ],
+  "timestamp_units": "Unix milliseconds; closed candle end",
+  "data_sha256": "ae59e73c7cdf27c41a72d3fffeb0ef499b5a1ea031914676619ed3aebd255f47"
+}

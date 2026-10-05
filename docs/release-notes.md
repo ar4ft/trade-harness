@@ -1,3 +1,7 @@
+# 0.10.0 (development)
+
+Adds matched numerical/strategy/TimesFM/reviewer/cash/momentum policy comparisons, a compatible native Clef frozen-backbone head trainer, difficult-case review exports, past-only identity-bound reviewer temperature calibration, manual self-hosted GPU benchmarks, and authenticated read-only operational scorecards. Adds 23,376 verified DOGE hourly candles. Actual Flash NF4 CPU head training and serving succeeded; no held-out quality gain, calibrated Clef scores, GPU measurement or positive trading edge is claimed. The completed seven-candidate historical comparison promotes no model. Default weights remain unchanged, execution remains disabled, and signing still requires manual dispatch. See [evidence and operations](evidence-and-operations.md).
+
 # 0.9.1 (development)
 
 Adds full 27B Clef NF4/BF16 self-host launch instructions alongside Flash, plus a no-download hardware planning check for both variants. The pinned full snapshot is 55 GB; full-model inference remains untested because this workspace lacks disk, RAM and a GPU. Flash has verified native and orchestrator inference. Trading promotion still requires independent forward evidence; signing remains manual-only. See [Clef deployment](clef.md).

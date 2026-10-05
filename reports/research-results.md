@@ -2,6 +2,8 @@
 
 Version 0.8 implements shared-evidence training, full-policy replay, causal feature/regime diagnostics, and stronger forward acceptance. These historical experiments establish no positive trading edge. No candidate is activated.
 
+Version 0.10 adds a [seven-candidate comparison and operational measurements](../docs/evidence-and-operations.md), native Clef head training, a difficult-case review export and explicit reviewer calibration. The results below preserve the original version 0.8 experiment.
+
 ## Contextual reviewer
 
 The new candidate uses BTC, ETH, and SOL with paired flat/long inputs, position-aware next-open cost labels, and exactly the runtime `shared-evidence-v2` renderer. Its training partition contains 1,452 examples: 206 BUY, 180 SELL, and 1,066 HOLD. The CPU run used 120 optimizer steps, processing 480 examples, approximately 0.33 epoch. This is a limited training budget.
